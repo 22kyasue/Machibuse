@@ -32,7 +32,7 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // セッション更新のみ（全ページ公開）
+  // セッション更新のみ（認証リダイレクトなし - 全ページ公開）
   await supabase.auth.getUser();
 
   return supabaseResponse;
