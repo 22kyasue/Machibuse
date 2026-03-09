@@ -29,6 +29,10 @@ export async function GET() {
     .maybeSingle();
 
   if (error) {
+    // テーブル未作成の場合はデフォルト値を返す
+    if (error.message.includes("does not exist") || error.message.includes("schema cache")) {
+      return NextResponse.json({ ...DEFAULTS });
+    }
     return NextResponse.json(
       { error: "設定の取得に失敗しました" },
       { status: 500 }
@@ -81,6 +85,13 @@ export async function PUT(request: Request) {
     .single();
 
   if (error) {
+    // テーブル未作成の場合
+    if (error.message.includes("does not exist") || error.message.includes("schema cache")) {
+      return NextResponse.json(
+        { error: "通知設定テーブルが未作成です。003_notification_settings.sqlを実行してください。" },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(
       { error: "設定の保存に失敗しました" },
       { status: 500 }

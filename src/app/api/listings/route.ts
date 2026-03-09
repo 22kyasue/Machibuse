@@ -20,13 +20,6 @@ export async function GET(request: NextRequest) {
 // 募集登録
 export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
-  }
 
   const body = await request.json();
   const { data, error } = await supabase
@@ -39,6 +32,7 @@ export async function POST(request: NextRequest) {
       floor: body.floor || null,
       source_site: body.source_site || null,
       source_url: body.source_url || null,
+      detected_at: body.detected_at || new Date().toISOString(),
     })
     .select()
     .single();

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 
 interface HeaderProps {
   onMenuToggle?: () => void;
@@ -11,18 +11,7 @@ interface HeaderProps {
 
 export function Header({ onMenuToggle }: HeaderProps) {
   const router = useRouter();
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  useEffect(() => {
-    fetch("/api/notifications")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setUnreadCount(data.filter((n: { is_read: boolean }) => !n.is_read).length);
-        }
-      })
-      .catch(() => {});
-  }, []);
+  const { unreadCount } = useRealtimeNotifications();
 
   const handleLogout = async () => {
     try {

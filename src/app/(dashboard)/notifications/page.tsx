@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ListSkeleton } from "@/components/ui/skeleton";
+import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import type { Notification } from "@/types";
 
 const typeLabels: Record<string, { label: string; color: string }> = {
@@ -15,29 +16,29 @@ const typeLabels: Record<string, { label: string; color: string }> = {
 };
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<"all" | "unread">("all");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
 
-  const fetchNotifications = useCallback(() => {
-    setLoading(true);
-    setError(null);
-    fetch("/api/notifications")
-      .then((res) => {
-        if (!res.ok) throw new Error("データの取得に失敗しました");
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) setNotifications(data);
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+  const {
+    notifications,
+    setNotifications,
+    refetch: fetchNotifications,
+  } = useRealtimeNotifications({
+    onNewNotification: () => {
+      // 新着通知が来た時の追加処理（必要に応じて拡張可能）
+    },
+  });
 
+  // 初回ロード状態の管理
   useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+    if (notifications.length > 0 || !initialLoading) {
+      setInitialLoading(false);
+      return;
+    }
+    // 初回取得完了を検知するため少し待つ
+    const timer = setTimeout(() => setInitialLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, [notifications, initialLoading]);
 
   const filtered =
     filter === "unread"
@@ -59,18 +60,7 @@ export default function NotificationsPage() {
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-4 py-16">
-        <p className="text-sm text-red-600">{error}</p>
-        <Button variant="primary" size="sm" onClick={fetchNotifications}>
-          再試行
-        </Button>
-      </div>
-    );
-  }
-
-  if (loading) {
+  if (initialLoading) {
     return (
       <div className="space-y-6">
         <div className="h-8 w-32 animate-pulse rounded bg-gray-200" />
