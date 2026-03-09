@@ -1,18 +1,16 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusTag } from "@/components/ui/status-tag";
-import { mockMansions, mockNotifications } from "@/lib/mock-data";
+import { getDashboardData } from "@/lib/queries";
 
-export default function DashboardPage() {
-  const watchedMansions = mockMansions.filter((m) => m.is_watched);
-  const unreadNotifications = mockNotifications.filter((n) => !n.is_read);
-  const activeMansions = mockMansions.filter(
-    (m) => m.active_listings_count > 0
-  );
-  const totalActiveListings = mockMansions.reduce(
-    (sum, m) => sum + m.active_listings_count,
-    0
-  );
+export default async function DashboardPage() {
+  const {
+    watchedMansions,
+    unreadNotifications,
+    activeMansions,
+    totalActiveListings,
+    notifications,
+  } = await getDashboardData();
 
   return (
     <div className="space-y-6">
@@ -118,12 +116,12 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="mt-4 space-y-3">
-              {mockNotifications.length === 0 ? (
+              {notifications.length === 0 ? (
                 <p className="text-sm text-gray-500">
                   新しい通知はありません
                 </p>
               ) : (
-                mockNotifications.slice(0, 5).map((notification) => (
+                notifications.map((notification) => (
                   <Link
                     key={notification.id}
                     href={

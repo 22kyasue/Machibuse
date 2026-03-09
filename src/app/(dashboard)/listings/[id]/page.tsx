@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusTag } from "@/components/ui/status-tag";
-import { getListingById, getUnitById, getMansionById } from "@/lib/mock-data";
+import { getListingById, getUnitById, getMansionById } from "@/lib/queries";
 
 export default async function ListingDetailPage({
   params,
@@ -10,11 +10,11 @@ export default async function ListingDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const listing = getListingById(id);
+  const listing = await getListingById(id);
   if (!listing) notFound();
 
-  const unit = getUnitById(listing.unit_id);
-  const mansion = unit ? getMansionById(unit.mansion_id) : undefined;
+  const unit = await getUnitById(listing.unit_id);
+  const mansion = unit ? await getMansionById(unit.mansion_id) : null;
 
   return (
     <div className="space-y-6">

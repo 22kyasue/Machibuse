@@ -1,50 +1,47 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase";
 
-export function Header() {
+interface HeaderProps {
+  onMenuToggle?: () => void;
+}
+
+export function Header({ onMenuToggle }: HeaderProps) {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
+
   return (
     <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-6">
       <div className="flex items-center gap-4">
-        <button className="text-gray-500 hover:text-gray-700 lg:hidden">
-          <svg
-            className="h-6 w-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
+        <button
+          onClick={onMenuToggle}
+          className="text-gray-500 hover:text-gray-700 lg:hidden"
+        >
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
       </div>
       <div className="flex items-center gap-4">
-        <Link
-          href="/notifications"
-          className="relative text-gray-500 hover:text-gray-700"
-        >
-          <svg
-            className="h-6 w-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-            />
+        <Link href="/notifications" className="relative text-gray-500 hover:text-gray-700">
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
-          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
-            3
-          </span>
         </Link>
-        <div className="h-8 w-8 rounded-full bg-gray-300" />
+        <button
+          onClick={handleLogout}
+          className="text-sm text-gray-500 hover:text-gray-700"
+        >
+          ログアウト
+        </button>
       </div>
     </header>
   );

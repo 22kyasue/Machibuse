@@ -15,8 +15,7 @@ const typeLabels: Record<string, { label: string; color: string }> = {
 };
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] =
-    useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
   const [filter, setFilter] = useState<"all" | "unread">("all");
 
   const filtered =
@@ -36,9 +35,7 @@ export default function NotificationsPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">通知一覧</h1>
           {unreadCount > 0 && (
-            <p className="text-sm text-gray-500">
-              未読: {unreadCount}件
-            </p>
+            <p className="text-sm text-gray-500">未読: {unreadCount}件</p>
           )}
         </div>
         <Button variant="outline" size="sm" onClick={markAllRead}>
@@ -104,9 +101,7 @@ export default function NotificationsPage() {
                           {notification.message}
                         </p>
                         <p className="mt-1 text-xs text-gray-400">
-                          {new Date(
-                            notification.created_at
-                          ).toLocaleString("ja-JP")}
+                          {new Date(notification.created_at).toLocaleString("ja-JP")}
                         </p>
                       </div>
                       {!notification.is_read && (

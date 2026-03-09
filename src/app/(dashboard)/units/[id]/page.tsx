@@ -8,7 +8,7 @@ import {
   getMansionById,
   getListingsByUnitId,
   getUnitsByMansionId,
-} from "@/lib/mock-data";
+} from "@/lib/queries";
 
 export default async function UnitDetailPage({
   params,
@@ -16,16 +16,16 @@ export default async function UnitDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const unit = getUnitById(id);
+  const unit = await getUnitById(id);
   if (!unit) notFound();
 
-  const mansion = getMansionById(unit.mansion_id);
-  const listings = getListingsByUnitId(unit.id);
+  const mansion = await getMansionById(unit.mansion_id);
+  const listings = await getListingsByUnitId(unit.id);
   const activeListings = listings.filter((l) => l.status === "active");
   const pastListings = listings.filter((l) => l.status !== "active");
 
   // 類似住戸
-  const allUnits = getUnitsByMansionId(unit.mansion_id);
+  const allUnits = await getUnitsByMansionId(unit.mansion_id);
   const similarUnits = allUnits.filter(
     (u) =>
       u.id !== unit.id &&
