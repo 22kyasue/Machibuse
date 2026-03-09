@@ -1,0 +1,241 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Card, CardContent } from "@/components/ui/card";
+import { StatusTag } from "@/components/ui/status-tag";
+import { Button } from "@/components/ui/button";
+import {
+  getMansionById,
+  getUnitsByMansionId,
+  getListingsByUnitId,
+} from "@/lib/mock-data";
+
+export default async function MansionDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const mansion = getMansionById(id);
+  if (!mansion) notFound();
+
+  const units = getUnitsByMansionId(id);
+  const activeListings = units.flatMap((unit) =>
+    getListingsByUnitId(unit.id).filter((l) => l.status === "active")
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* ヘッダー */}
+      <div className="flex items-start justify-between">
+        <div>
+          <Link
+            href="/mansions"
+            className="text-sm text-gray-500 hover:text-gray-700"
+          >
+            &larr; 建物一覧に戻る
+          </Link>
+          <h1 className="mt-2 text-2xl font-bold text-gray-900">
+            {mansion.name}
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            {mansion.address} / {mansion.nearest_station} 徒歩
+            {mansion.walking_minutes}分
+          </p>
+          <p className="text-sm text-gray-400">
+            {mansion.construction_date} / {mansion.floors}階建 /{" "}
+            {mansion.total_units}戸 / {mansion.brand_type}
+          </p>
+        </div>
+        <Button variant={mansion.is_watched ? "secondary" : "primary"}>
+          {mansion.is_watched ? "監視中" : "この建物を監視する"}
+        </Button>
+      </div>
+
+      {/* 状況サマリ */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <Card>
+          <CardContent className="text-center">
+            <p className="text-2xl font-bold text-gray-900">
+              {mansion.active_listings_count}
+            </p>
+            <p className="text-xs text-gray-500">現在募集中</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="text-center">
+            <p className="text-2xl font-bold text-gray-900">
+              {mansion.known_unit_types_count}
+            </p>
+            <p className="text-xs text-gray-500">確認済タイプ</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="text-center">
+            <p className="text-2xl font-bold text-gray-900">
+              {mansion.recent_listings_count}
+            </p>
+            <p className="text-xs text-gray-500">直近30日新着</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="text-center">
+            <p className="text-sm font-bold text-gray-900">
+              {mansion.last_listing_date || "-"}
+            </p>
+            <p className="text-xs text-gray-500">最終更新</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* アクションバー */}
+      <div className="flex gap-3">
+        <Button variant="primary">
+          {mansion.is_watched ? "監視中" : "建物を監視する"}
+        </Button>
+        <Button variant="outline">+ 間取りタイプを追加</Button>
+      </div>
+
+      {/* 間取りタイプ一覧 */}
+      <div>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">
+          間取りタイプ一覧
+        </h2>
+        <div className="space-y-3">
+          {units
+            .sort((a, b) => {
+              if (a.status === "active" && b.status !== "active") return -1;
+              if (a.status !== "active" && b.status === "active") return 1;
+              if (a.status === "past" && b.status === "unknown") return -1;
+              if (a.status === "unknown" && b.status === "past") return 1;
+              return b.size_sqm - a.size_sqm;
+            })
+            .map((unit) => (
+              <Link key={unit.id} href={`/units/${unit.id}`}>
+                <Card className="transition-shadow hover:shadow-md">
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          {unit.layout_type} / {unit.size_sqm}㎡ /{" "}
+                          {unit.direction}向き / {unit.floor_range}
+                        </p>
+                        <div className="mt-1 flex gap-1.5">
+                          <StatusTag status={unit.status} />
+                          {unit.last_listing_date && (
+                            <span className="text-xs text-gray-400">
+                              直近掲載: {unit.last_listing_date}
+                            </span>
+                          )}
+                        </div>
+                        {unit.last_rent_amount && (
+                          <p className="mt-1 text-sm text-gray-500">
+                            直近賃料:{" "}
+                            {(unit.last_rent_amount / 10000).toFixed(1)}万円
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant={unit.is_watched ? "secondary" : "outline"}
+                          size="sm"
+                          onClick={(e) => e.preventDefault()}
+                        >
+                          {unit.is_watched ? "監視中" : "監視する"}
+                        </Button>
+                        <span className="text-gray-400">&rarr;</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+        </div>
+      </div>
+
+      {/* 現在募集中住戸 */}
+      {activeListings.length > 0 && (
+        <div>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">
+            現在募集中の住戸
+          </h2>
+          <div className="space-y-3">
+            {activeListings.slice(0, 3).map((listing) => {
+              const unit = units.find((u) => u.id === listing.unit_id);
+              return (
+                <Link key={listing.id} href={`/listings/${listing.id}`}>
+                  <Card className="transition-shadow hover:shadow-md">
+                    <CardContent>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-gray-900">
+                            {unit?.layout_type} / {unit?.size_sqm}㎡ /{" "}
+                            {listing.floor}F
+                          </p>
+                          <p className="text-lg font-bold text-blue-600">
+                            {(listing.current_rent / 10000).toFixed(1)}万円
+                            <span className="ml-1 text-sm font-normal text-gray-500">
+                              + 管理費
+                              {listing.management_fee
+                                ? `${(listing.management_fee / 10000).toFixed(1)}万円`
+                                : "-"}
+                            </span>
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            掲載元: {listing.source_site} / 検知:{" "}
+                            {new Date(listing.detected_at).toLocaleDateString(
+                              "ja-JP"
+                            )}
+                          </p>
+                        </div>
+                        <span className="text-gray-400">&rarr;</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 過去の動きサマリ */}
+      <Card>
+        <CardContent>
+          <h2 className="mb-3 text-lg font-semibold text-gray-900">
+            過去の動きサマリ
+          </h2>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 text-sm">
+            <div>
+              <p className="text-gray-500">過去12ヶ月掲載数</p>
+              <p className="font-bold text-gray-900">5件</p>
+            </div>
+            <div>
+              <p className="text-gray-500">最後の掲載</p>
+              <p className="font-bold text-gray-900">
+                {mansion.last_listing_date || "-"}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-500">よく出るタイプ</p>
+              <p className="font-bold text-gray-900">2LDK</p>
+            </div>
+            <div>
+              <p className="text-gray-500">賃料レンジ</p>
+              <p className="font-bold text-gray-900">28万〜48万</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 備考 */}
+      {mansion.memo && (
+        <Card>
+          <CardContent>
+            <h2 className="mb-2 text-lg font-semibold text-gray-900">備考</h2>
+            <p className="text-sm text-gray-600">{mansion.memo}</p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
