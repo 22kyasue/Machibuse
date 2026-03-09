@@ -1,0 +1,197 @@
+import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { ScrapedListing } from "./types";
+
+interface ProcessResult {
+  created: number;
+  updated: number;
+  skipped: number;
+}
+
+/**
+ * スクレイプ結果をDBに保存する
+ * - mansion_name で既存建物を検索、なければ新規作成
+ * - layout_type + size_sqm で既存ユニットを検索、なければ新規作成
+ * - source_url + status で重複チェック、なければ新規listing作成
+ */
+export async function processScrapedListings(
+  listings: ScrapedListing[]
+): Promise<ProcessResult> {
+  const supabase = await createServerSupabaseClient();
+
+  let created = 0;
+  let updated = 0;
+  let skipped = 0;
+
+  for (const item of listings) {
+    try {
+      // 1. 建物の検索 or 作成
+      const mansionId = await findOrCreateMansion(supabase, item);
+
+      // 2. ユニットの検索 or 作成
+      const unitId = await findOrCreateUnit(supabase, mansionId, item);
+
+      // 3. 重複チェック & Listing作成
+      const result = await findOrCreateListing(supabase, unitId, item);
+
+      if (result === "created") created++;
+      else if (result === "updated") updated++;
+      else skipped++;
+    } catch (error) {
+      console.error(
+        `[scraper] 物件処理エラー: ${item.mansion_name}`,
+        error
+      );
+      skipped++;
+    }
+  }
+
+  return { created, updated, skipped };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function findOrCreateMansion(supabase: any, item: ScrapedListing): Promise<string> {
+  // 建物名で検索
+  const { data: existing, error: searchError } = await supabase
+    .from("mansions")
+    .select("id")
+    .eq("name", item.mansion_name)
+    .limit(1)
+    .maybeSingle();
+
+  if (searchError) {
+    throw new Error(`建物検索エラー: ${searchError.message}`);
+  }
+
+  if (existing) {
+    return existing.id;
+  }
+
+  // 新規作成
+  const { data: created, error: insertError } = await supabase
+    .from("mansions")
+    .insert({
+      name: item.mansion_name,
+      address: item.address,
+      nearest_station: item.nearest_station || null,
+      walking_minutes: item.walking_minutes || null,
+    })
+    .select("id")
+    .single();
+
+  if (insertError) {
+    throw new Error(`建物作成エラー: ${insertError.message}`);
+  }
+
+  return created.id;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function findOrCreateUnit(supabase: any, mansionId: string, item: ScrapedListing): Promise<string> {
+  // layout_type + size_sqm で検索
+  const { data: existing, error: searchError } = await supabase
+    .from("units")
+    .select("id")
+    .eq("mansion_id", mansionId)
+    .eq("layout_type", item.layout_type)
+    .eq("size_sqm", item.size_sqm)
+    .limit(1)
+    .maybeSingle();
+
+  if (searchError) {
+    throw new Error(`ユニット検索エラー: ${searchError.message}`);
+  }
+
+  if (existing) {
+    // last_rent を更新
+    await supabase
+      .from("units")
+      .update({ last_rent: item.rent })
+      .eq("id", existing.id);
+    return existing.id;
+  }
+
+  // 新規作成
+  const { data: created, error: insertError } = await supabase
+    .from("units")
+    .insert({
+      mansion_id: mansionId,
+      layout_type: item.layout_type,
+      size_sqm: item.size_sqm,
+      floor_range: item.floor ? `${item.floor}階` : null,
+      last_rent: item.rent,
+    })
+    .select("id")
+    .single();
+
+  if (insertError) {
+    throw new Error(`ユニット作成エラー: ${insertError.message}`);
+  }
+
+  return created.id;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function findOrCreateListing(supabase: any, unitId: string, item: ScrapedListing): Promise<"created" | "updated" | "skipped"> {
+  // source_url + active status で重複チェック
+  const { data: existing, error: searchError } = await supabase
+    .from("listings")
+    .select("id, current_rent")
+    .eq("unit_id", unitId)
+    .eq("source_url", item.source_url)
+    .eq("status", "active")
+    .limit(1)
+    .maybeSingle();
+
+  if (searchError) {
+    throw new Error(`Listing検索エラー: ${searchError.message}`);
+  }
+
+  if (existing) {
+    // 賃料が変わった場合は更新
+    if (existing.current_rent !== item.rent) {
+      const { error: updateError } = await supabase
+        .from("listings")
+        .update({
+          current_rent: item.rent,
+          management_fee: item.management_fee,
+          scraped_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id);
+
+      if (updateError) {
+        throw new Error(`Listing更新エラー: ${updateError.message}`);
+      }
+      return "updated";
+    }
+
+    // scraped_at だけ更新
+    await supabase
+      .from("listings")
+      .update({ scraped_at: new Date().toISOString() })
+      .eq("id", existing.id);
+
+    return "skipped";
+  }
+
+  // 新規作成
+  const { error: insertError } = await supabase.from("listings").insert({
+    unit_id: unitId,
+    status: "active",
+    current_rent: item.rent,
+    management_fee: item.management_fee,
+    floor: item.floor,
+    source_site: item.source_site,
+    source_url: item.source_url,
+    detected_at: new Date().toISOString(),
+    scraped_at: new Date().toISOString(),
+  });
+
+  if (insertError) {
+    throw new Error(`Listing作成エラー: ${insertError.message}`);
+  }
+
+  return "created";
+}
+
+export { scrapeSuumoPage } from "./suumo";
+export type { ScrapedListing } from "./types";

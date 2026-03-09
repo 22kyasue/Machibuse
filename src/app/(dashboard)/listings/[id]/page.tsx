@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusTag } from "@/components/ui/status-tag";
+import { RentHistoryChart } from "@/components/chart/rent-history-chart";
 import {
   getListingById,
   getUnitById,
@@ -169,6 +170,9 @@ export default async function ListingDetailPage({
           </div>
         </CardContent>
       </Card>
+
+      {/* 賃料推移グラフ */}
+      {unitListings.length > 0 && <RentHistoryChart listings={unitListings} />}
 
       {/* このタイプの過去掲載履歴 */}
       {pastListings.length > 0 && (

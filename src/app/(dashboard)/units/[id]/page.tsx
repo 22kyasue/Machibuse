@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { StatusTag } from "@/components/ui/status-tag";
 import { WatchUnitButton } from "@/components/unit/watch-unit-button";
 import { AddListingSection } from "@/components/listing/add-listing-section";
+import { RentHistoryChart } from "@/components/chart/rent-history-chart";
 import {
   getUnitById,
   getMansionById,
@@ -151,6 +152,9 @@ export default async function UnitDetailPage({
           </div>
         </div>
       )}
+
+      {/* 賃料推移グラフ */}
+      <RentHistoryChart listings={listings} />
 
       {/* 過去募集履歴 */}
       <div>
