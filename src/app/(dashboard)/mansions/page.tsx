@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusTag } from "@/components/ui/status-tag";
 import { AddMansionModal, type MansionFormData } from "@/components/mansion/add-mansion-modal";
-import { mockMansions } from "@/lib/mock-data";
+import { CardSkeleton } from "@/components/ui/skeleton";
 import type { MansionWithStats } from "@/types";
 
 type SortKey = "updated_at" | "name" | "active_listings_count" | "walking_minutes";
@@ -14,20 +14,29 @@ type FilterKey = "all" | "watched" | "active";
 const ITEMS_PER_PAGE = 9;
 
 export default function MansionsPage() {
-  const [mansions, setMansions] = useState<MansionWithStats[]>(mockMansions);
+  const [mansions, setMansions] = useState<MansionWithStats[]>([]);
+  const [loading, setLoading] = useState(true);
   const [sortKey, setSortKey] = useState<SortKey>("updated_at");
   const [filter, setFilter] = useState<FilterKey>("all");
   const [page, setPage] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
 
+  useEffect(() => {
+    fetch("/api/mansions")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setMansions(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
   const filtered = useMemo(() => {
     let result = [...mansions];
 
-    // フィルター
     if (filter === "watched") result = result.filter((m) => m.is_watched);
     if (filter === "active") result = result.filter((m) => m.active_listings_count > 0);
 
-    // ソート
     result.sort((a, b) => {
       switch (sortKey) {
         case "name":
@@ -48,26 +57,33 @@ export default function MansionsPage() {
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-  function handleAddMansion(data: MansionFormData) {
-    const newMansion: MansionWithStats = {
-      id: crypto.randomUUID(),
-      ...data,
-      brand_type: data.brand_type || null,
-      total_units: data.total_units,
-      floors: data.floors,
-      construction_date: data.construction_date || null,
-      features: data.features || null,
-      memo: data.memo || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      active_listings_count: 0,
-      known_unit_types_count: 0,
-      recent_listings_count: 0,
-      last_listing_date: null,
-      is_watched: false,
-      status: "unknown",
-    };
-    setMansions((prev) => [newMansion, ...prev]);
+  async function handleAddMansion(data: MansionFormData) {
+    const res = await fetch("/api/mansions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      // リロードして最新データ取得
+      const updated = await fetch("/api/mansions").then((r) => r.json());
+      if (Array.isArray(updated)) setMansions(updated);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="h-8 w-32 animate-pulse rounded bg-gray-200" />
+          <div className="h-10 w-32 animate-pulse rounded bg-gray-200" />
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -82,7 +98,6 @@ export default function MansionsPage() {
         </button>
       </div>
 
-      {/* フィルター & ソート */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-2 text-sm">
           {(
@@ -120,12 +135,10 @@ export default function MansionsPage() {
         </div>
       </div>
 
-      {/* 件数表示 */}
       <p className="text-sm text-gray-500">
-        {filtered.length}件中 {(page - 1) * ITEMS_PER_PAGE + 1}-{Math.min(page * ITEMS_PER_PAGE, filtered.length)}件を表示
+        {filtered.length}件中 {Math.min((page - 1) * ITEMS_PER_PAGE + 1, filtered.length)}-{Math.min(page * ITEMS_PER_PAGE, filtered.length)}件を表示
       </p>
 
-      {/* 建物カード一覧 */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {paginated.map((mansion) => (
           <Link key={mansion.id} href={`/mansions/${mansion.id}`}>
@@ -152,36 +165,23 @@ export default function MansionsPage() {
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {mansion.active_listings_count > 0 && (
-                    <StatusTag status="active" />
-                  )}
-                  {mansion.active_listings_count === 0 &&
-                    mansion.last_listing_date && <StatusTag status="past" />}
-                  {!mansion.last_listing_date && (
-                    <StatusTag status="unknown" />
-                  )}
-                  {mansion.recent_listings_count > 0 && (
-                    <StatusTag status="new" />
-                  )}
+                  {mansion.active_listings_count > 0 && <StatusTag status="active" />}
+                  {mansion.active_listings_count === 0 && mansion.last_listing_date && <StatusTag status="past" />}
+                  {!mansion.last_listing_date && <StatusTag status="unknown" />}
+                  {mansion.recent_listings_count > 0 && <StatusTag status="new" />}
                 </div>
 
                 <div className="mt-3 grid grid-cols-3 gap-2 border-t border-gray-100 pt-3 text-center">
                   <div>
-                    <p className="text-lg font-bold text-gray-900">
-                      {mansion.active_listings_count}
-                    </p>
+                    <p className="text-lg font-bold text-gray-900">{mansion.active_listings_count}</p>
                     <p className="text-xs text-gray-500">募集中</p>
                   </div>
                   <div>
-                    <p className="text-lg font-bold text-gray-900">
-                      {mansion.known_unit_types_count}
-                    </p>
+                    <p className="text-lg font-bold text-gray-900">{mansion.known_unit_types_count}</p>
                     <p className="text-xs text-gray-500">確認タイプ</p>
                   </div>
                   <div>
-                    <p className="text-lg font-bold text-gray-900">
-                      {mansion.recent_listings_count}
-                    </p>
+                    <p className="text-lg font-bold text-gray-900">{mansion.recent_listings_count}</p>
                     <p className="text-xs text-gray-500">30日新着</p>
                   </div>
                 </div>
@@ -191,7 +191,6 @@ export default function MansionsPage() {
         ))}
       </div>
 
-      {/* ページネーション */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button
@@ -206,9 +205,7 @@ export default function MansionsPage() {
               key={p}
               onClick={() => setPage(p)}
               className={`rounded-lg px-3 py-1.5 text-sm ${
-                page === p
-                  ? "bg-blue-600 text-white"
-                  : "border border-gray-300 hover:bg-gray-50"
+                page === p ? "bg-blue-600 text-white" : "border border-gray-300 hover:bg-gray-50"
               }`}
             >
               {p}
@@ -224,7 +221,6 @@ export default function MansionsPage() {
         </div>
       )}
 
-      {/* 建物登録モーダル */}
       <AddMansionModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}

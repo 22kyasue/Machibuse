@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 interface AddMansionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (mansion: MansionFormData) => void;
+  onSubmit: (mansion: MansionFormData) => void | Promise<void>;
 }
 
 export interface MansionFormData {
@@ -47,10 +47,15 @@ export function AddMansionModal({ isOpen, onClose, onSubmit }: AddMansionModalPr
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    onSubmit(form);
-    setForm(initialForm);
-    setLoading(false);
-    onClose();
+    try {
+      await onSubmit(form);
+      setForm(initialForm);
+      onClose();
+    } catch {
+      // エラー時はモーダルを閉じない
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

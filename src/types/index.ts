@@ -79,6 +79,20 @@ export interface Notification {
   created_at: string;
 }
 
+// 通知設定
+export interface NotificationSettings {
+  id: string;
+  user_id: string;
+  email_enabled: boolean;
+  email_address: string | null;
+  notify_new_listing: boolean;
+  notify_price_change: boolean;
+  notify_ended: boolean;
+  notify_relisted: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // UI用の拡張型
 export type MansionStatus = "active" | "new" | "past" | "unknown";
 export type UnitStatus = "active" | "past" | "unknown";

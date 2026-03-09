@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { mockNotifications } from "@/lib/mock-data";
+import { ListSkeleton } from "@/components/ui/skeleton";
 import type { Notification } from "@/types";
 
 const typeLabels: Record<string, { label: string; color: string }> = {
@@ -15,19 +15,48 @@ const typeLabels: Record<string, { label: string; color: string }> = {
 };
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/notifications")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setNotifications(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   const filtered =
     filter === "unread"
       ? notifications.filter((n) => !n.is_read)
       : notifications;
 
-  const markAllRead = () => {
+  const markAllRead = async () => {
+    const ids = notifications.filter((n) => !n.is_read).map((n) => n.id);
+    if (ids.length === 0) return;
+
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    });
+
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
   };
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-32 animate-pulse rounded bg-gray-200" />
+        <ListSkeleton count={5} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -71,7 +100,7 @@ export default function NotificationsPage() {
           </Card>
         ) : (
           filtered.map((notification) => {
-            const typeConfig = typeLabels[notification.type];
+            const typeConfig = typeLabels[notification.type] || { label: notification.type, color: "bg-gray-100 text-gray-800" };
             return (
               <Link
                 key={notification.id}
@@ -88,18 +117,14 @@ export default function NotificationsPage() {
                     <div className="flex items-start justify-between">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${typeConfig.color}`}
-                          >
+                          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${typeConfig.color}`}>
                             {typeConfig.label}
                           </span>
                           <span className="text-sm font-semibold text-gray-900">
                             {notification.title}
                           </span>
                         </div>
-                        <p className="mt-1 text-sm text-gray-600">
-                          {notification.message}
-                        </p>
+                        <p className="mt-1 text-sm text-gray-600">{notification.message}</p>
                         <p className="mt-1 text-xs text-gray-400">
                           {new Date(notification.created_at).toLocaleString("ja-JP")}
                         </p>

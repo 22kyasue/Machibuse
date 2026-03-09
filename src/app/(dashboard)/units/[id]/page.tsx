@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusTag } from "@/components/ui/status-tag";
-import { Button } from "@/components/ui/button";
+import { WatchUnitButton } from "@/components/unit/watch-unit-button";
 import {
   getUnitById,
   getMansionById,
@@ -65,9 +65,7 @@ export default async function UnitDetailPage({
             <StatusTag status={unit.status} />
           </div>
         </div>
-        <Button variant={unit.is_watched ? "secondary" : "primary"}>
-          {unit.is_watched ? "監視中" : "この間取りを監視する"}
-        </Button>
+        <WatchUnitButton unitId={unit.id} initialIsWatched={unit.is_watched} />
       </div>
 
       {/* 間取り図プレースホルダー */}

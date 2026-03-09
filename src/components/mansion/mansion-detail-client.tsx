@@ -15,35 +15,60 @@ interface MansionDetailClientProps {
 }
 
 export function MansionDetailClient({
-  mansion,
+  mansion: initialMansion,
   initialUnits,
   activeListings,
 }: MansionDetailClientProps) {
+  const [mansion, setMansion] = useState(initialMansion);
   const [units, setUnits] = useState(initialUnits);
   const [showAddUnit, setShowAddUnit] = useState(false);
 
-  function handleAddUnit(data: UnitFormData) {
-    const newUnit: UnitWithStats = {
-      id: crypto.randomUUID(),
-      mansion_id: data.mansion_id,
-      room_number: data.room_number || null,
-      floor_range: data.floor_range || null,
-      size_sqm: data.size_sqm,
-      layout_type: data.layout_type,
-      direction: data.direction || null,
-      balcony: data.balcony || null,
-      floorplan_url: null,
-      last_rent: null,
-      memo: data.memo || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      active_listings_count: 0,
-      last_listing_date: null,
-      last_rent_amount: null,
-      is_watched: false,
-      status: "unknown",
-    };
-    setUnits((prev) => [...prev, newUnit]);
+  async function handleAddUnit(data: UnitFormData) {
+    const res = await fetch("/api/units", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      const newUnit = await res.json();
+      setUnits((prev) => [...prev, {
+        ...newUnit,
+        active_listings_count: 0,
+        last_listing_date: null,
+        last_rent_amount: null,
+        is_watched: false,
+        status: "unknown" as const,
+      }]);
+    }
+  }
+
+  async function handleToggleWatch() {
+    if (mansion.is_watched) {
+      // 監視解除
+      const res = await fetch("/api/watchlists");
+      const watchlist = await res.json();
+      const entry = Array.isArray(watchlist)
+        ? watchlist.find(
+            (w: { target_mansion_id: string | null }) => w.target_mansion_id === mansion.id
+          )
+        : null;
+      if (entry) {
+        await fetch("/api/watchlists", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: entry.id }),
+        });
+      }
+      setMansion((prev) => ({ ...prev, is_watched: false }));
+    } else {
+      // 監視追加
+      await fetch("/api/watchlists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_mansion_id: mansion.id }),
+      });
+      setMansion((prev) => ({ ...prev, is_watched: true }));
+    }
   }
 
   return (
@@ -69,7 +94,10 @@ export function MansionDetailClient({
             {mansion.total_units}戸 / {mansion.brand_type}
           </p>
         </div>
-        <Button variant={mansion.is_watched ? "secondary" : "primary"}>
+        <Button
+          variant={mansion.is_watched ? "secondary" : "primary"}
+          onClick={handleToggleWatch}
+        >
           {mansion.is_watched ? "監視中" : "この建物を監視する"}
         </Button>
       </div>
@@ -112,7 +140,10 @@ export function MansionDetailClient({
 
       {/* アクションバー */}
       <div className="flex gap-3">
-        <Button variant="primary">
+        <Button
+          variant={mansion.is_watched ? "secondary" : "primary"}
+          onClick={handleToggleWatch}
+        >
           {mansion.is_watched ? "監視中" : "建物を監視する"}
         </Button>
         <Button variant="outline" onClick={() => setShowAddUnit(true)}>

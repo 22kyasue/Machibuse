@@ -8,7 +8,7 @@ interface AddUnitModalProps {
   isOpen: boolean;
   onClose: () => void;
   mansionId: string;
-  onSubmit: (unit: UnitFormData) => void;
+  onSubmit: (unit: UnitFormData) => void | Promise<void>;
 }
 
 export interface UnitFormData {
@@ -42,19 +42,24 @@ export function AddUnitModal({ isOpen, onClose, mansionId, onSubmit }: AddUnitMo
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    onSubmit({ ...form, mansion_id: mansionId });
-    setForm({
-      mansion_id: mansionId,
-      room_number: "",
-      floor_range: "",
-      size_sqm: 0,
-      layout_type: "",
-      direction: "",
-      balcony: "",
-      memo: "",
-    });
-    setLoading(false);
-    onClose();
+    try {
+      await onSubmit({ ...form, mansion_id: mansionId });
+      setForm({
+        mansion_id: mansionId,
+        room_number: "",
+        floor_range: "",
+        size_sqm: 0,
+        layout_type: "",
+        direction: "",
+        balcony: "",
+        memo: "",
+      });
+      onClose();
+    } catch {
+      // エラー時はモーダルを閉じない
+    } finally {
+      setLoading(false);
+    }
   }
 
   const layoutOptions = ["1R", "1K", "1DK", "1LDK", "2K", "2DK", "2LDK", "3LDK", "4LDK"];

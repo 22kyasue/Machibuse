@@ -40,6 +40,11 @@ export async function PATCH(
   const { id } = await params;
   const supabase = await createServerSupabaseClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+  }
+
   const body = await request.json();
   const { data, error } = await supabase
     .from("units")
