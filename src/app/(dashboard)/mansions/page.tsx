@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusTag } from "@/components/ui/status-tag";
@@ -16,20 +16,30 @@ const ITEMS_PER_PAGE = 9;
 export default function MansionsPage() {
   const [mansions, setMansions] = useState<MansionWithStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("updated_at");
   const [filter, setFilter] = useState<FilterKey>("all");
   const [page, setPage] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  useEffect(() => {
+  const fetchMansions = useCallback(() => {
+    setLoading(true);
+    setError(null);
     fetch("/api/mansions")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("データの取得に失敗しました");
+        return res.json();
+      })
       .then((data) => {
         if (Array.isArray(data)) setMansions(data);
-        setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchMansions();
+  }, [fetchMansions]);
 
   const filtered = useMemo(() => {
     let result = [...mansions];
@@ -68,6 +78,20 @@ export default function MansionsPage() {
       const updated = await fetch("/api/mansions").then((r) => r.json());
       if (Array.isArray(updated)) setMansions(updated);
     }
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-16">
+        <p className="text-sm text-red-600">{error}</p>
+        <button
+          onClick={fetchMansions}
+          className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        >
+          再試行
+        </button>
+      </div>
+    );
   }
 
   if (loading) {

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusTag } from "@/components/ui/status-tag";
 import { WatchUnitButton } from "@/components/unit/watch-unit-button";
+import { AddListingSection } from "@/components/listing/add-listing-section";
 import {
   getUnitById,
   getMansionById,
@@ -106,12 +107,15 @@ export default async function UnitDetailPage({
         </CardContent>
       </Card>
 
+      {/* 募集登録 */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-gray-900">現在募集中</h2>
+        <AddListingSection unitId={unit.id} />
+      </div>
+
       {/* 現在募集中 */}
       {activeListings.length > 0 && (
         <div>
-          <h2 className="mb-3 text-lg font-semibold text-gray-900">
-            現在募集中
-          </h2>
           <div className="space-y-3">
             {activeListings.map((listing) => (
               <Link key={listing.id} href={`/listings/${listing.id}`}>

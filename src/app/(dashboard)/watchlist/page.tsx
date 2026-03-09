@@ -11,15 +11,21 @@ import type { MansionWithStats } from "@/types";
 export default function WatchlistPage() {
   const [mansions, setMansions] = useState<MansionWithStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchMansions = useCallback(() => {
+    setLoading(true);
+    setError(null);
     fetch("/api/mansions")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("データの取得に失敗しました");
+        return res.json();
+      })
       .then((data) => {
         if (Array.isArray(data)) setMansions(data);
-        setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -61,6 +67,17 @@ export default function WatchlistPage() {
 
   const watchedMansions = mansions.filter((m) => m.is_watched);
   const unwatchedMansions = mansions.filter((m) => !m.is_watched);
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-16">
+        <p className="text-sm text-red-600">{error}</p>
+        <Button variant="primary" size="sm" onClick={fetchMansions}>
+          再試行
+        </Button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
