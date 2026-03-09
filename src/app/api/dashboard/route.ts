@@ -5,39 +5,56 @@ import { createServerSupabaseClient } from "@/lib/supabase-server";
 export async function GET() {
   const supabase = await createServerSupabaseClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  let userId: string | null = null;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id || null;
+  } catch {
+    // 未認証
   }
 
-  // 並行で全データ取得
-  const [
-    mansionsResult,
-    activeListingsResult,
-    notificationsResult,
-    watchlistResult,
-  ] = await Promise.all([
-    supabase.from("mansions").select("id", { count: "exact" }),
-    supabase.from("listings").select("id", { count: "exact" }).eq("status", "active"),
-    supabase
+  // 建物数
+  const { count: totalMansions } = await supabase
+    .from("mansions")
+    .select("id", { count: "exact" });
+
+  // アクティブ募集数
+  const { count: activeListings } = await supabase
+    .from("listings")
+    .select("id", { count: "exact" })
+    .eq("status", "active");
+
+  // 未読通知 & ウォッチ数（ログイン時のみ）
+  let recentNotifications: unknown[] = [];
+  let unreadCount = 0;
+  let activeWatches = 0;
+
+  if (userId) {
+    const { data: notifs } = await supabase
       .from("notifications")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("is_read", false)
       .order("created_at", { ascending: false })
-      .limit(5),
-    supabase
+      .limit(5);
+
+    recentNotifications = notifs || [];
+    unreadCount = recentNotifications.length;
+
+    const { count: watchCount } = await supabase
       .from("user_watchlists")
       .select("id", { count: "exact" })
-      .eq("user_id", user.id)
-      .eq("is_active", true),
-  ]);
+      .eq("user_id", userId)
+      .eq("is_active", true);
+
+    activeWatches = watchCount || 0;
+  }
 
   return NextResponse.json({
-    total_mansions: mansionsResult.count || 0,
-    active_listings: activeListingsResult.count || 0,
-    unread_notifications: notificationsResult.data?.length || 0,
-    recent_notifications: notificationsResult.data || [],
-    active_watches: watchlistResult.count || 0,
+    total_mansions: totalMansions || 0,
+    active_listings: activeListings || 0,
+    unread_notifications: unreadCount,
+    recent_notifications: recentNotifications,
+    active_watches: activeWatches,
   });
 }

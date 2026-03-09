@@ -82,11 +82,6 @@ export async function PATCH(
   const { id } = await params;
   const supabase = await createServerSupabaseClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
-  }
-
   const body = await request.json();
   const { data, error } = await supabase
     .from("mansions")
@@ -109,11 +104,6 @@ export async function DELETE(
 ) {
   const { id } = await params;
   const supabase = await createServerSupabaseClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
-  }
 
   const { error } = await supabase
     .from("mansions")

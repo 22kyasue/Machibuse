@@ -1,19 +1,26 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
-// 通知一覧取得（自分の通知のみ）
+// 通知一覧取得
 export async function GET() {
   const supabase = await createServerSupabaseClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  let userId: string | null = null;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id || null;
+  } catch {
+    // 未認証
+  }
+
+  if (!userId) {
+    return NextResponse.json([]);
   }
 
   const { data: notifications, error } = await supabase
     .from("notifications")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -28,9 +35,16 @@ export async function GET() {
 export async function PATCH(request: Request) {
   const supabase = await createServerSupabaseClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  let userId: string | null = null;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id || null;
+  } catch {
+    // 未認証
+  }
+
+  if (!userId) {
+    return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
   }
 
   const body = await request.json();
@@ -40,7 +54,7 @@ export async function PATCH(request: Request) {
     .from("notifications")
     .update({ is_read: true })
     .in("id", ids)
-    .eq("user_id", user.id);
+    .eq("user_id", userId);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

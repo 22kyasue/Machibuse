@@ -13,13 +13,16 @@ const DEFAULTS = {
 export async function GET() {
   const supabase = await createServerSupabaseClient();
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  let user: { id: string } | null = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    // 未認証
+  }
 
-  if (authError || !user) {
-    return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+  if (!user) {
+    return NextResponse.json({ ...DEFAULTS });
   }
 
   const { data, error } = await supabase
