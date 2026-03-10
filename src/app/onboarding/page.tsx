@@ -73,8 +73,8 @@ export default function OnboardingPage() {
               onClick={() => toggleArea(area)}
               className={`rounded-full px-5 py-2.5 text-base font-medium transition-all ${
                 prefs.areas.includes(area)
-                  ? "bg-blue-600 text-white shadow-md scale-105"
-                  : "bg-white text-gray-700 border border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+                  ? "bg-slate-900 text-white shadow-md scale-105"
+                  : "bg-white text-slate-700 border border-slate-200 hover:border-slate-400 hover:bg-slate-50"
               }`}
             >
               {area}
@@ -94,8 +94,8 @@ export default function OnboardingPage() {
               onClick={() => toggleLayout(layout)}
               className={`rounded-full px-5 py-2.5 text-base font-medium transition-all ${
                 prefs.layouts.includes(layout)
-                  ? "bg-blue-600 text-white shadow-md scale-105"
-                  : "bg-white text-gray-700 border border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+                  ? "bg-slate-900 text-white shadow-md scale-105"
+                  : "bg-white text-slate-700 border border-slate-200 hover:border-slate-400 hover:bg-slate-50"
               }`}
             >
               {layout}
@@ -110,7 +110,7 @@ export default function OnboardingPage() {
       content: (
         <div className="mx-auto max-w-sm space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-600">
+            <label className="mb-1 block text-sm font-medium text-slate-500">
               下限（万円）
             </label>
             <input
@@ -124,11 +124,11 @@ export default function OnboardingPage() {
                   rentMin: e.target.value === "" ? null : Number(e.target.value),
                 }))
               }
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-lg focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500/20"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-600">
+            <label className="mb-1 block text-sm font-medium text-slate-500">
               上限（万円）
             </label>
             <input
@@ -142,7 +142,7 @@ export default function OnboardingPage() {
                   rentMax: e.target.value === "" ? null : Number(e.target.value),
                 }))
               }
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-lg focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500/20"
             />
           </div>
         </div>
@@ -154,7 +154,7 @@ export default function OnboardingPage() {
       content: (
         <div className="mx-auto max-w-sm space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-600">
+            <label className="mb-1 block text-sm font-medium text-slate-500">
               駅徒歩（分以内）
             </label>
             <input
@@ -169,11 +169,11 @@ export default function OnboardingPage() {
                     e.target.value === "" ? null : Number(e.target.value),
                 }))
               }
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-lg focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500/20"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-600">
+            <label className="mb-1 block text-sm font-medium text-slate-500">
               広さ下限（㎡）
             </label>
             <input
@@ -188,7 +188,7 @@ export default function OnboardingPage() {
                     e.target.value === "" ? null : Number(e.target.value),
                 }))
               }
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-lg focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500/20"
             />
           </div>
         </div>
@@ -200,13 +200,16 @@ export default function OnboardingPage() {
   const isLast = step === steps.length - 1;
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4">
-      <div className="w-full max-w-lg">
-        {/* ロゴ / タイトル */}
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">待ち伏せ</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            狙ったマンションを逃さない
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4">
+      {/* Subtle grid pattern */}
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#0f172a08_1px,transparent_1px),linear-gradient(to_bottom,#0f172a08_1px,transparent_1px)] bg-[size:64px_64px]" />
+
+      <div className="relative w-full max-w-lg">
+        {/* ロゴ */}
+        <div className="mb-12 text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">MACHIBUSE</h1>
+          <p className="mt-2 text-sm text-slate-400">
+            理想の住まいを、誰よりも早く。
           </p>
         </div>
 
@@ -215,19 +218,24 @@ export default function OnboardingPage() {
           {steps.map((_, i) => (
             <div
               key={i}
-              className={`h-1.5 flex-1 rounded-full transition-colors ${
-                i <= step ? "bg-blue-600" : "bg-gray-200"
+              className={`h-1 flex-1 rounded-full transition-all duration-500 ${
+                i <= step ? "bg-slate-900" : "bg-slate-200"
               }`}
             />
           ))}
         </div>
 
+        {/* ステップ番号 */}
+        <p className="mb-2 text-center text-xs font-medium tracking-widest text-slate-400 uppercase">
+          Step {step + 1} / {steps.length}
+        </p>
+
         {/* ステップ内容 */}
         <div className="mb-8 text-center">
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-xl font-bold tracking-tight text-slate-900">
             {currentStep.title}
           </h2>
-          <p className="mt-2 text-sm text-gray-500">{currentStep.subtitle}</p>
+          <p className="mt-2 text-sm text-slate-500">{currentStep.subtitle}</p>
         </div>
 
         <div className="mb-10">{currentStep.content}</div>
@@ -236,24 +244,24 @@ export default function OnboardingPage() {
         <div className="flex items-center justify-between">
           <button
             onClick={handleSkip}
-            className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-sm text-slate-400 hover:text-slate-600 transition-colors duration-200"
           >
-            スキップして始める
+            スキップ
           </button>
           <div className="flex gap-3">
             {step > 0 && (
               <button
                 onClick={() => setStep(step - 1)}
-                className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all duration-200"
               >
                 戻る
               </button>
             )}
             <button
               onClick={handleNext}
-              className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm"
+              className="rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-medium text-white hover:bg-slate-800 transition-all duration-200 shadow-sm"
             >
-              {isLast ? "物件を見る" : "次へ"}
+              {isLast ? "はじめる" : "次へ →"}
             </button>
           </div>
         </div>
