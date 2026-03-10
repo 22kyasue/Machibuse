@@ -26,7 +26,8 @@ export function Header({ onMenuToggle }: HeaderProps) {
   );
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-slate-200/40 bg-white/70 px-6 backdrop-blur-xl">
+    <>
+    <header className="flex h-14 items-center justify-between bg-white/70 px-6 backdrop-blur-xl">
       <div className="flex items-center gap-4">
         {/* モバイルメニューボタン */}
         <button
@@ -51,7 +52,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
         {/* 希望条件の再設定 */}
         <Link
           href="/onboarding"
-          className="rounded-lg border border-slate-200/60 px-3.5 py-1.5 text-xs font-semibold text-slate-500 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 hover:shadow-sm"
+          className="group relative rounded-lg px-3.5 py-1.5 text-xs font-semibold text-slate-500 transition-all duration-200 hover:text-slate-700 hover:shadow-sm overflow-hidden border border-slate-200/60 hover:border-slate-300"
           title="希望条件を変更"
         >
           条件変更
@@ -87,5 +88,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
         </Link>
       </div>
     </header>
+    <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+    </>
   );
 }

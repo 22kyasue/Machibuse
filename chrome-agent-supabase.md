@@ -608,7 +608,19 @@ seed_additional.sql の募集部分をそのままコピーして「New query」
 
 ---
 
-## ステップ10: データ確認
+## ステップ10: データ充実化（備考・基礎情報・間取り補完）
+
+「New query」で新しいクエリを開き、`supabase/seed_enrich.sql` の内容をすべて貼り付けて **Run**。
+
+このSQLは以下を実行します：
+- 全45棟の建物基礎情報を更新（構造、管理会社、ペット可否、駐車場、第二最寄駅）
+- 各建物の詳細な備考（家賃帯、人気の間取り、管理の特徴、近隣情報など）を追加
+- 間取りの漏れを補完（1K/1LDK/2LDK/3LDK のカバレッジを確保）
+- 新規募集7件を追加（interior_features / building_features 付き）
+
+---
+
+## ステップ11: データ確認
 
 最後に以下のSQLで全テーブルのレコード数を確認：
 
@@ -626,8 +638,8 @@ UNION ALL SELECT 'property_images', COUNT(*) FROM property_images;
 | tbl | count |
 |-----|-------|
 | mansions | 45 (7+15+23) |
-| units | 140 (12+59+69) |
-| listings | 173 (8+93+72) |
+| units | 148 (12+59+69+8補完) |
+| listings | 180 (8+93+72+7追加) |
 | notification_settings | 0 |
 | property_images | 0 |
 
@@ -637,5 +649,5 @@ UNION ALL SELECT 'property_images', COUNT(*) FROM property_images;
 
 ## 完了
 
-全てのマイグレーションとシードデータの投入が完了しました。
-アプリ（ https://localhost:3000 または Vercel のデプロイ先）をリロードすると、45棟の建物と173件の募集情報が表示されるはずです。
+全てのマイグレーション、シードデータの投入、およびデータ充実化が完了しました。
+アプリ（ https://localhost:3000 または Vercel のデプロイ先）をリロードすると、45棟の建物（詳細備考付き）と約180件の募集情報が表示されるはずです。

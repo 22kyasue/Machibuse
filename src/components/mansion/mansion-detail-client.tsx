@@ -7,7 +7,9 @@ import { StatusTag } from "@/components/ui/status-tag";
 import { Button } from "@/components/ui/button";
 import { PropertyMap } from "@/components/ui/property-map";
 import { AddUnitModal, type UnitFormData } from "@/components/mansion/add-unit-modal";
+import { ImageSlideshow } from "@/components/ui/image-slideshow";
 import { isWatched as checkWatched, toggleWatchlist } from "@/lib/watchlist";
+import { getMansionImages } from "@/data/mansion-images";
 import type { MansionWithStats, UnitWithStats, Listing } from "@/types";
 
 interface MansionDetailClientProps {
@@ -120,16 +122,25 @@ export function MansionDetailClient({
         </Card>
       </div>
 
-      {/* 外観画像 */}
-      {mansion.exterior_image_url && (
-        <div className="overflow-hidden rounded-lg">
-          <img
-            src={mansion.exterior_image_url}
-            alt={mansion.name}
-            className="h-64 w-full object-cover"
-          />
-        </div>
-      )}
+      {/* 建物画像 */}
+      {(() => {
+        const staticImages = getMansionImages(mansion.id);
+        const displayImages = staticImages.length > 0
+          ? staticImages
+          : mansion.exterior_image_url
+            ? [{ url: mansion.exterior_image_url, type: "exterior", caption: "外観" }]
+            : [];
+        if (displayImages.length === 0) return null;
+        return (
+          <div className="overflow-hidden rounded-lg h-72">
+            <ImageSlideshow
+              images={displayImages}
+              alt={mansion.name}
+              className="h-full w-full"
+            />
+          </div>
+        );
+      })()}
 
       {/* 建物詳細情報 */}
       <Card>

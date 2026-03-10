@@ -98,7 +98,7 @@ export default function WatchlistPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-32 animate-pulse rounded bg-gray-200" />
+        <div className="h-8 w-32 animate-pulse rounded bg-slate-200" />
         <ListSkeleton count={3} />
       </div>
     );
@@ -106,10 +106,10 @@ export default function WatchlistPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-fade-in">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">ウォッチリスト</h1>
-          <p className="mt-0.5 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-slate-900">ウォッチリスト</h1>
+          <p className="mt-0.5 text-sm text-slate-500">
             {watchedMansions.length}件の建物を監視中
           </p>
         </div>
@@ -125,11 +125,31 @@ export default function WatchlistPage() {
       {watchedMansions.length === 0 ? (
         <Card>
           <CardContent>
-            <div className="py-8 text-center">
-              <p className="text-lg font-medium text-gray-500">
+            <div className="py-12 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+                <svg
+                  className="h-8 w-8 text-slate-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+              </div>
+              <p className="text-lg font-medium text-slate-500">
                 監視中の建物はまだありません
               </p>
-              <p className="mt-2 text-sm text-gray-400">
+              <p className="mt-2 text-sm text-slate-400">
                 物件一覧から気になる建物をウォッチリストに追加しましょう
               </p>
               <Link
@@ -143,18 +163,22 @@ export default function WatchlistPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {watchedMansions.map((mansion) => (
-            <Card key={mansion.id} className="transition-shadow hover:shadow-md">
+          {watchedMansions.map((mansion, index) => (
+            <Card
+              key={mansion.id}
+              className="animate-fade-in-up hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300"
+              style={{ animationDelay: `${index * 60}ms` }}
+            >
               <CardContent>
                 <div className="flex items-start justify-between gap-3">
                   <Link
                     href={`/mansions/${mansion.id}`}
                     className="min-w-0 flex-1"
                   >
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="font-semibold text-slate-900">
                       {mansion.name}
                     </h3>
-                    <p className="mt-0.5 text-sm text-gray-500">
+                    <p className="mt-0.5 text-sm text-slate-500">
                       {mansion.nearest_station} 徒歩{mansion.walking_minutes}分
                       / {mansion.address}
                     </p>
@@ -166,7 +190,7 @@ export default function WatchlistPage() {
                       ) : (
                         <StatusTag status="unknown" />
                       )}
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-slate-400">
                         募集中: {mansion.active_listings_count}件
                       </span>
                     </div>
@@ -179,14 +203,14 @@ export default function WatchlistPage() {
                         );
                         setMemoText(memos[mansion.id] || "");
                       }}
-                      className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                      className="rounded-lg border border-slate-200/60 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
                       title="メモ"
                     >
                       {memos[mansion.id] ? "メモ編集" : "メモ追加"}
                     </button>
                     <button
                       onClick={() => handleUnwatch(mansion.id)}
-                      className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                      className="rounded-lg border border-red-200/60 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50/80"
                     >
                       解除
                     </button>
@@ -195,7 +219,7 @@ export default function WatchlistPage() {
 
                 {/* メモ表示 */}
                 {memos[mansion.id] && editingMemo !== mansion.id && (
-                  <div className="mt-3 rounded-lg bg-yellow-50 px-3 py-2 text-sm text-yellow-800 border border-yellow-100">
+                  <div className="mt-3 rounded-xl bg-amber-50/80 border border-amber-100/60 px-4 py-3 text-sm text-amber-800">
                     {memos[mansion.id]}
                   </div>
                 )}
@@ -207,7 +231,7 @@ export default function WatchlistPage() {
                       value={memoText}
                       onChange={(e) => setMemoText(e.target.value)}
                       placeholder="この物件についてのメモ..."
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full border-slate-200/60 focus:border-slate-400 focus:ring-2 focus:ring-slate-500/10 rounded-xl border px-3 py-2 text-sm focus:outline-none"
                       rows={3}
                     />
                     <div className="flex gap-2">
@@ -222,7 +246,7 @@ export default function WatchlistPage() {
                           setEditingMemo(null);
                           setMemoText("");
                         }}
-                        className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                        className="rounded-lg border border-slate-200/60 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
                       >
                         キャンセル
                       </button>
@@ -238,14 +262,15 @@ export default function WatchlistPage() {
       {/* 未監視の建物 */}
       {unwatchedMansions.length > 0 && (
         <div>
-          <h2 className="mb-3 text-lg font-semibold text-gray-900">
+          <h2 className="mb-3 text-lg font-semibold text-slate-900">
             その他の建物
           </h2>
           <div className="space-y-3">
-            {unwatchedMansions.slice(0, 10).map((mansion) => (
+            {unwatchedMansions.slice(0, 10).map((mansion, index) => (
               <Card
                 key={mansion.id}
-                className="transition-shadow hover:shadow-md"
+                className="animate-fade-in-up hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300"
+                style={{ animationDelay: `${index * 60}ms` }}
               >
                 <CardContent>
                   <div className="flex items-center justify-between">
@@ -253,10 +278,10 @@ export default function WatchlistPage() {
                       href={`/mansions/${mansion.id}`}
                       className="min-w-0 flex-1"
                     >
-                      <h3 className="font-semibold text-gray-900">
+                      <h3 className="font-semibold text-slate-900">
                         {mansion.name}
                       </h3>
-                      <p className="mt-0.5 text-sm text-gray-500">
+                      <p className="mt-0.5 text-sm text-slate-500">
                         {mansion.nearest_station} 徒歩
                         {mansion.walking_minutes}分
                       </p>
@@ -272,7 +297,7 @@ export default function WatchlistPage() {
               </Card>
             ))}
             {unwatchedMansions.length > 10 && (
-              <p className="text-center text-sm text-gray-400">
+              <p className="text-center text-sm text-slate-400">
                 他 {unwatchedMansions.length - 10} 件 →{" "}
                 <Link href="/mansions" className="text-blue-600 hover:underline">
                   建物一覧で確認

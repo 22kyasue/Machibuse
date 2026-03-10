@@ -63,7 +63,7 @@ export default function NotificationSettingsPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-2xl py-12 text-center text-gray-500">
+      <div className="mx-auto max-w-2xl py-12 text-center text-slate-500">
         読み込み中...
       </div>
     );
@@ -71,21 +71,21 @@ export default function NotificationSettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">通知設定</h1>
+      <h1 className="animate-fade-in text-2xl font-bold text-slate-900">通知設定</h1>
 
       {/* メール通知 */}
       <Card>
         <CardContent>
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">
             メール通知
           </h2>
           <div className="space-y-4">
             <label className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">メール通知を有効にする</span>
+              <span className="text-sm text-slate-600">メール通知を有効にする</span>
               <button
                 onClick={() => setEmailEnabled(!emailEnabled)}
                 className={`relative h-6 w-11 rounded-full transition-colors ${
-                  emailEnabled ? "bg-blue-600" : "bg-gray-300"
+                  emailEnabled ? "bg-slate-900" : "bg-slate-200"
                 }`}
               >
                 <span
@@ -97,14 +97,14 @@ export default function NotificationSettingsPage() {
             </label>
             {emailEnabled && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-600 mb-1">
                   通知先メールアドレス
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500/20"
                   placeholder="you@example.com"
                 />
               </div>
@@ -116,7 +116,7 @@ export default function NotificationSettingsPage() {
       {/* 通知種別 */}
       <Card>
         <CardContent>
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">
             通知する内容
           </h2>
           <div className="space-y-3">
@@ -128,13 +128,13 @@ export default function NotificationSettingsPage() {
             ].map((item) => (
               <label key={item.label} className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{item.label}</p>
-                  <p className="text-xs text-gray-500">{item.desc}</p>
+                  <p className="text-sm font-medium text-slate-900">{item.label}</p>
+                  <p className="text-xs text-slate-500">{item.desc}</p>
                 </div>
                 <button
                   onClick={() => item.set(!item.value)}
                   className={`relative mt-0.5 h-6 w-11 flex-shrink-0 rounded-full transition-colors ${
-                    item.value ? "bg-blue-600" : "bg-gray-300"
+                    item.value ? "bg-slate-900" : "bg-slate-200"
                   }`}
                 >
                   <span

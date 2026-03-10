@@ -19,6 +19,7 @@ export default function OnboardingPage() {
   const [prefs, setPrefs] = useState<UserPreferences>(DEFAULT_PREFERENCES);
   const [mounted, setMounted] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const loaded = loadPreferences();
@@ -58,8 +59,6 @@ export default function OnboardingPage() {
         : [...prev.features, feature],
     }));
   }
-
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   function handleNext() {
     if (step < steps.length - 1) {

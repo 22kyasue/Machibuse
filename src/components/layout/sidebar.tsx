@@ -36,14 +36,17 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
+        {/* アニメーショングラデーションライン */}
+        <div className="h-[2px] bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 animate-gradient" />
+
         {/* ロゴエリア */}
         <div className="flex h-16 items-center justify-between px-6">
           <Link href="/dashboard" className="flex flex-col">
-            <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-400 bg-clip-text text-lg font-bold tracking-widest text-transparent drop-shadow-[0_0_12px_rgba(59,130,246,0.3)]">
+            <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-400 bg-clip-text text-xl font-black tracking-[0.2em] text-transparent animate-gradient" style={{ backgroundSize: '200% 200%' }}>
               MACHIBUSE
             </span>
-            <span className="text-[11px] font-medium tracking-wider text-slate-500">
-              Property Tracker
+            <span className="mt-0.5 text-[10px] font-medium tracking-[0.15em] text-slate-500 uppercase">
+              Property Intelligence
             </span>
           </Link>
           {/* モバイル閉じるボタン */}
@@ -71,7 +74,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 href={item.href}
                 onClick={onClose}
                 style={{ animationDelay: `${index * 50}ms` }}
-                className={`animate-slide-in group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-200 ${
+                className={`animate-slide-in group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-300 ${
                   isActive
                     ? "bg-white/[0.08] text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
                     : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
@@ -80,7 +83,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 {isActive && (
                   <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-gradient-to-b from-blue-400 to-cyan-400 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
                 )}
-                <item.icon className={`h-[18px] w-[18px] transition-colors duration-200 ${isActive ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300"}`} />
+                <item.icon className={`h-[18px] w-[18px] transition-colors duration-300 ${isActive ? "text-cyan-400 drop-shadow-[0_0_4px_rgba(34,211,238,0.4)]" : "text-slate-500 group-hover:text-slate-300"}`} />
                 {item.label}
               </Link>
             );
@@ -91,9 +94,12 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         <div className="absolute bottom-0 left-0 right-0 p-4">
           <div className="mx-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-3" />
           <div className="mx-1 pt-3">
-            <span className="text-[10px] font-medium tracking-wider text-slate-600">
-              v1.5
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold tracking-wider text-slate-600">v2.0</span>
+              <span className="rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 px-2 py-0.5 text-[9px] font-bold tracking-wider text-blue-400">
+                PRO
+              </span>
+            </div>
           </div>
         </div>
       </aside>

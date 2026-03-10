@@ -20,8 +20,8 @@ interface Unit {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
-const labelClass = "block text-sm font-medium text-gray-700 mb-1";
+  "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500";
+const labelClass = "block text-sm font-medium text-slate-700 mb-1";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("mansion");
@@ -115,7 +115,7 @@ export default function AdminPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">管理画面</h1>
+      <h1 className="mb-6 text-2xl font-bold text-slate-900 animate-fade-in">管理画面</h1>
 
       {/* メッセージ */}
       {message && (
@@ -131,15 +131,15 @@ export default function AdminPage() {
       )}
 
       {/* タブ */}
-      <div className="mb-6 flex gap-1 rounded-lg bg-gray-100 p-1">
+      <div className="mb-6 flex gap-1 rounded-lg bg-slate-100 p-1">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === tab.key
-                ? "bg-white text-blue-700 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-slate-900 text-white shadow-sm"
+                : "text-slate-600 hover:bg-slate-100"
             }`}
           >
             {tab.label}
@@ -180,10 +180,10 @@ export default function AdminPage() {
       {activeTab === "images" && (
         <Card>
           <CardContent>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">
+            <h2 className="mb-4 text-lg font-semibold text-slate-900">
               画像一括取得
             </h2>
-            <p className="mb-4 text-sm text-gray-500">
+            <p className="mb-4 text-sm text-slate-500">
               各建物の名前でSUUMOを検索し、外観・エントランス等の写真を自動取得します。
             </p>
             <Button
@@ -194,10 +194,10 @@ export default function AdminPage() {
             </Button>
 
             <div className="mt-6 space-y-2">
-              <h3 className="text-sm font-medium text-gray-700">個別取得</h3>
+              <h3 className="text-sm font-medium text-slate-700">個別取得</h3>
               {mansions.map((m) => (
-                <div key={m.id} className="flex items-center justify-between rounded-lg border border-gray-100 p-3">
-                  <span className="text-sm font-medium text-gray-900">{m.name}</span>
+                <div key={m.id} className="flex items-center justify-between rounded-lg border border-slate-100 p-3">
+                  <span className="text-sm font-medium text-slate-900">{m.name}</span>
                   <Button
                     variant="outline"
                     size="sm"
@@ -264,7 +264,7 @@ function MansionForm({
   return (
     <Card>
       <CardHeader>
-        <h2 className="text-lg font-semibold text-gray-900">建物登録</h2>
+        <h2 className="text-lg font-semibold text-slate-900">建物登録</h2>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -397,7 +397,7 @@ function UnitForm({
   return (
     <Card>
       <CardHeader>
-        <h2 className="text-lg font-semibold text-gray-900">間取り登録</h2>
+        <h2 className="text-lg font-semibold text-slate-900">間取り登録</h2>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -550,7 +550,7 @@ function ListingForm({
   return (
     <Card>
       <CardHeader>
-        <h2 className="text-lg font-semibold text-gray-900">募集登録</h2>
+        <h2 className="text-lg font-semibold text-slate-900">募集登録</h2>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">

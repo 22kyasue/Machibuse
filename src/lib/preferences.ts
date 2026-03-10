@@ -246,4 +246,83 @@ export const AREA_OPTIONS = [
   "文京区",
 ];
 
-export const LAYOUT_OPTIONS = ["1K", "1LDK", "2LDK", "3LDK", "4LDK"];
+export const LAYOUT_OPTIONS = [
+  "1R", "1K", "1DK", "1LDK",
+  "2K", "2DK", "2LDK",
+  "3K", "3DK", "3LDK",
+  "4K", "4DK", "4LDK",
+  "5DK以上",
+];
+
+// 賃料選択肢（万円）
+export const RENT_OPTIONS = [
+  { value: null, label: "指定なし" },
+  { value: 5, label: "5万円" },
+  { value: 10, label: "10万円" },
+  { value: 15, label: "15万円" },
+  { value: 20, label: "20万円" },
+  { value: 25, label: "25万円" },
+  { value: 30, label: "30万円" },
+  { value: 35, label: "35万円" },
+  { value: 40, label: "40万円" },
+  { value: 50, label: "50万円" },
+  { value: 60, label: "60万円" },
+  { value: 80, label: "80万円" },
+  { value: 100, label: "100万円" },
+];
+
+// 面積選択肢（㎡）
+export const SIZE_OPTIONS = [
+  { value: null, label: "指定なし" },
+  { value: 20, label: "20㎡" },
+  { value: 25, label: "25㎡" },
+  { value: 30, label: "30㎡" },
+  { value: 40, label: "40㎡" },
+  { value: 50, label: "50㎡" },
+  { value: 60, label: "60㎡" },
+  { value: 70, label: "70㎡" },
+  { value: 80, label: "80㎡" },
+  { value: 100, label: "100㎡" },
+];
+
+// 駅徒歩選択肢（分）
+export const WALKING_OPTIONS = [
+  { value: null, label: "指定なし" },
+  { value: 3, label: "3分以内" },
+  { value: 5, label: "5分以内" },
+  { value: 7, label: "7分以内" },
+  { value: 10, label: "10分以内" },
+  { value: 15, label: "15分以内" },
+  { value: 20, label: "20分以内" },
+];
+
+// 築年数選択肢
+export const BUILDING_AGE_OPTIONS = [
+  { value: null, label: "指定なし" },
+  { value: "新築", label: "新築" },
+  { value: "3年以内", label: "3年以内" },
+  { value: "5年以内", label: "5年以内" },
+  { value: "10年以内", label: "10年以内" },
+  { value: "15年以内", label: "15年以内" },
+  { value: "20年以内", label: "20年以内" },
+];
+
+// 人気のこだわり条件（フラット表示用）
+export const POPULAR_FEATURES = [
+  "バス・トイレ別",
+  "オートロック",
+  "ペット可",
+  "駐車場あり",
+  "独立洗面台",
+  "エアコン付き",
+  "追い焚き",
+  "温水洗浄便座",
+  "宅配ボックス",
+  "インターネット無料",
+  "南向き",
+  "角部屋",
+  "フローリング",
+  "2人入居可",
+  "システムキッチン",
+  "浴室乾燥機",
+] as const;
