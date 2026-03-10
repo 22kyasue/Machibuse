@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { createClient } from "@/lib/supabase";
+import { usePathname } from "next/navigation";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 
 const pageTitles: Record<string, string> = {
@@ -19,24 +18,12 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuToggle }: HeaderProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const { unreadCount } = useRealtimeNotifications();
 
   const currentPage = Object.entries(pageTitles).find(
     ([path]) => pathname === path || pathname.startsWith(path + "/")
   );
-
-  const handleLogout = async () => {
-    try {
-      const supabase = createClient();
-      await supabase.auth.signOut();
-    } catch {
-      // Supabase未設定時はそのままリダイレクト
-    }
-    router.push("/login");
-    router.refresh();
-  };
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-slate-200/60 bg-white/80 px-6 backdrop-blur-sm">
@@ -61,6 +48,15 @@ export function Header({ onMenuToggle }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-1">
+        {/* 希望条件の再設定 */}
+        <Link
+          href="/onboarding"
+          className="rounded-lg px-3 py-2 text-sm font-medium text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-700"
+          title="希望条件を変更"
+        >
+          条件変更
+        </Link>
+
         {/* 通知ベル */}
         <Link
           href="/notifications"
@@ -72,12 +68,11 @@ export function Header({ onMenuToggle }: HeaderProps) {
           {unreadCount > 0 && (
             <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white ring-2 ring-white">
               {unreadCount > 9 ? "9+" : unreadCount}
-              <span className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-40" />
             </span>
           )}
         </Link>
 
-        {/* 設定ギア */}
+        {/* 設定 */}
         <Link
           href="/settings/notifications"
           className="rounded-lg p-2.5 text-slate-400 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-600"
@@ -87,17 +82,6 @@ export function Header({ onMenuToggle }: HeaderProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </Link>
-
-        {/* ログアウトアイコン */}
-        <button
-          onClick={handleLogout}
-          className="rounded-lg p-2.5 text-slate-400 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-600"
-          title="ログアウト"
-        >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-        </button>
       </div>
     </header>
   );

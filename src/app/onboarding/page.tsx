@@ -17,15 +17,17 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0);
   const [prefs, setPrefs] = useState<UserPreferences>(DEFAULT_PREFERENCES);
   const [mounted, setMounted] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
 
   useEffect(() => {
     const loaded = loadPreferences();
+    // 条件変更からのアクセス（referrerチェック）or 直接アクセスの場合は既存条件をロード
     if (hasPreferences(loaded)) {
-      router.replace("/mansions");
-      return;
+      setPrefs(loaded);
+      setIsEdit(true);
     }
     setMounted(true);
-  }, [router]);
+  }, []);
 
   if (!mounted) return null;
 
