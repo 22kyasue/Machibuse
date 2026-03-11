@@ -4,7 +4,7 @@ import { useState, useEffect, FormEvent } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-type Tab = "mansion" | "unit" | "listing" | "images";
+type Tab = "mansion" | "unit" | "listing" | "images" | "scrape";
 
 interface Mansion {
   id: string;
@@ -106,6 +106,7 @@ export default function AdminPage() {
     { key: "unit", label: "間取り登録" },
     { key: "listing", label: "募集登録" },
     { key: "images", label: "画像管理" },
+    { key: "scrape", label: "スクレイプ" },
   ];
 
   return (
@@ -176,16 +177,42 @@ export default function AdminPage() {
         <Card>
           <CardContent>
             <h2 className="mb-4 text-lg font-semibold text-slate-900">
-              画像一括取得
+              画像自動追跡システム
             </h2>
             <p className="mb-4 text-sm text-slate-500">
-              各建物の名前でSUUMOを検索し、外観・エントランス等の写真を自動取得します。
+              建物名で複数サイト（SUUMO・LIFULL等）を横断検索し、外観・エントランス・室内等の写真を自動取得します。
+              建物詳細ページを開くと画像がない建物は自動的にバックグラウンド取得されます。
             </p>
+
+            {/* ステップ1: 静的画像をDBに移行 */}
+            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3">
+              <h3 className="text-sm font-bold text-blue-800">Step 1: 既存画像データをDBに移行</h3>
+              <p className="mt-1 text-xs text-blue-600">axel-homeから取得済みの静的画像をproperty_imagesテーブルに投入します（初回のみ）</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={async () => {
+                  setScrapingId("seed");
+                  try {
+                    const res = await fetch("/api/images/seed-static", { method: "POST" });
+                    const data = await res.json();
+                    showMessage("success", data.message);
+                  } catch { showMessage("error", "シードに失敗しました"); }
+                  finally { setScrapingId(null); }
+                }}
+                disabled={scrapingId === "seed"}
+              >
+                {scrapingId === "seed" ? "移行中..." : "静的画像をDBに移行"}
+              </Button>
+            </div>
+
+            {/* ステップ2: 一括自動取得 */}
             <Button
               onClick={handleScrapeAllImages}
               disabled={scrapingId === "all"}
             >
-              {scrapingId === "all" ? "取得中..." : "全建物の画像を一括取得"}
+              {scrapingId === "all" ? "取得中..." : "画像不足の建物を一括自動取得"}
             </Button>
 
             <div className="mt-6 space-y-2">
@@ -207,6 +234,176 @@ export default function AdminPage() {
           </CardContent>
         </Card>
       )}
+      {activeTab === "scrape" && (
+        <ScrapePanel mansions={mansions} onMessage={showMessage} />
+      )}
+    </div>
+  );
+}
+
+// ─── スクレイプパネル ──────────────────────────────────
+
+function ScrapePanel({
+  mansions,
+  onMessage,
+}: {
+  mansions: Mansion[];
+  onMessage: (type: "success" | "error", text: string) => void;
+}) {
+  const [scraping, setScraping] = useState(false);
+  const [buildingName, setBuildingName] = useState("");
+  const [scrapeUrl, setScrapeUrl] = useState("");
+  const [results, setResults] = useState<Record<string, unknown> | null>(null);
+  const [scrapingMansionId, setScrapingMansionId] = useState<string | null>(null);
+
+  async function handleManualScrape() {
+    if (!buildingName && !scrapeUrl) {
+      onMessage("error", "建物名またはURLを入力してください");
+      return;
+    }
+    setScraping(true);
+    setResults(null);
+    try {
+      const res = await fetch("/api/scrape/manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          building_name: buildingName || undefined,
+          url: scrapeUrl || undefined,
+        }),
+      });
+      const data = await res.json();
+      setResults(data);
+      if (res.ok) {
+        onMessage("success", data.message || "スクレイプ完了");
+      } else {
+        onMessage("error", data.error || "スクレイプ失敗");
+      }
+    } catch {
+      onMessage("error", "スクレイプ中にエラーが発生しました");
+    } finally {
+      setScraping(false);
+    }
+  }
+
+  async function handleScrapeMansion(mansionId: string, mansionName: string) {
+    setScrapingMansionId(mansionId);
+    try {
+      const res = await fetch("/api/scrape/manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ building_name: mansionName }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        onMessage("success", `${mansionName}: ${data.message}`);
+      } else {
+        onMessage("error", `${mansionName}: ${data.error || "失敗"}`);
+      }
+    } catch {
+      onMessage("error", `${mansionName}: スクレイプ失敗`);
+    } finally {
+      setScrapingMansionId(null);
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* 手動スクレイプ */}
+      <Card>
+        <CardContent>
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">
+            SUUMOスクレイプ
+          </h2>
+          <p className="mb-4 text-sm text-slate-500">
+            建物名で SUUMO を検索し、最新の賃貸情報を自動取得します。
+            取得したデータは建物・間取り・募集として自動登録されます。
+          </p>
+          <div className="space-y-3">
+            <div>
+              <label className={labelClass}>建物名で検索</label>
+              <input
+                value={buildingName}
+                onChange={(e) => setBuildingName(e.target.value)}
+                placeholder="例: パークコート渋谷"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>または SUUMO URL を直接指定</label>
+              <input
+                value={scrapeUrl}
+                onChange={(e) => setScrapeUrl(e.target.value)}
+                placeholder="https://suumo.jp/jj/chintai/..."
+                className={inputClass}
+              />
+            </div>
+            <Button onClick={handleManualScrape} disabled={scraping}>
+              {scraping ? "取得中..." : "スクレイプ実行"}
+            </Button>
+          </div>
+
+          {/* 結果表示 */}
+          {results && (
+            <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <h3 className="text-sm font-semibold text-slate-700 mb-2">結果</h3>
+              <div className="text-xs text-slate-600 space-y-1">
+                <p>取得件数: {(results as Record<string, unknown>).raw_count as number || 0}件</p>
+                <p>処理時間: {(results as Record<string, unknown>).scrape_time_ms as number || 0}ms</p>
+                {!!(results as Record<string, unknown>).results && (
+                  <>
+                    <p>新規登録: {((results as Record<string, unknown>).results as Record<string, number>).created}件</p>
+                    <p>更新: {((results as Record<string, unknown>).results as Record<string, number>).updated}件</p>
+                    <p>スキップ: {((results as Record<string, unknown>).results as Record<string, number>).skipped}件</p>
+                  </>
+                )}
+              </div>
+              {Array.isArray((results as Record<string, unknown>).listings_preview) && (
+                <div className="mt-3">
+                  <h4 className="text-xs font-medium text-slate-600 mb-1">プレビュー:</h4>
+                  <div className="space-y-1">
+                    {((results as Record<string, unknown>).listings_preview as Record<string, unknown>[]).map((l, i) => (
+                      <div key={i} className="rounded bg-white p-2 text-xs border border-slate-100">
+                        <span className="font-medium">{l.name as string}</span>
+                        {" / "}{l.layout as string} {l.size as number}㎡
+                        {" / "}{((l.rent as number) / 10000).toFixed(1)}万円
+                        {l.station ? <span className="text-slate-400"> ({l.station as string})</span> : null}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 登録済み建物のスクレイプ */}
+      <Card>
+        <CardContent>
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">
+            登録済み建物の最新情報取得
+          </h2>
+          <p className="mb-4 text-sm text-slate-500">
+            既に登録されている建物の名前でSUUMOを検索し、最新の募集情報を取得・更新します。
+          </p>
+          <div className="space-y-2">
+            {mansions.map((m) => (
+              <div key={m.id} className="flex items-center justify-between rounded-lg border border-slate-100 p-3">
+                <span className="text-sm font-medium text-slate-900">{m.name}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleScrapeMansion(m.id, m.name)}
+                  disabled={scrapingMansionId !== null}
+                >
+                  {scrapingMansionId === m.id ? "取得中..." : "最新取得"}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

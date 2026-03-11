@@ -2,31 +2,133 @@ import * as cheerio from "cheerio";
 import { ScrapedListing, ScrapedImage } from "./types";
 
 const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
+
+// SUUMOエリアコード（東京23区）
+const TOKYO_AREA_CODES: Record<string, string> = {
+  千代田区: "13101", 中央区: "13102", 港区: "13103", 新宿区: "13104",
+  文京区: "13105", 台東区: "13106", 墨田区: "13107", 江東区: "13108",
+  品川区: "13109", 目黒区: "13110", 大田区: "13111", 世田谷区: "13112",
+  渋谷区: "13113", 中野区: "13114", 杉並区: "13115", 豊島区: "13116",
+  北区: "13117", 荒川区: "13118", 板橋区: "13119", 練馬区: "13120",
+  足立区: "13121", 葛飾区: "13122", 江戸川区: "13123",
+};
+
+/**
+ * 建物名とオプションのエリアからSUUMO検索URLを生成
+ */
+export function buildSuumoSearchUrl(
+  buildingName: string,
+  areaCode?: string
+): string {
+  const params = new URLSearchParams({
+    ar: "030", // 関東
+    bs: "040", // 賃貸
+    ta: "13",  // 東京都
+    fw: buildingName,
+    srch_navi: "1",
+  });
+  if (areaCode) {
+    params.set("sc", areaCode);
+  }
+  return `https://suumo.jp/jj/chintai/ichiran/FR301FC001/?${params.toString()}`;
+}
+
+/**
+ * 建物名から推定エリアコードを取得
+ */
+export function guessAreaCode(address: string): string | undefined {
+  for (const [ward, code] of Object.entries(TOKYO_AREA_CODES)) {
+    if (address.includes(ward)) return code;
+  }
+  return undefined;
+}
 
 /**
  * SUUMOの賃貸物件一覧ページをスクレイプして物件情報を抽出する
+ * buildingNameFilter: 指定すると建物名で結果をフィルタリング
  */
 export async function scrapeSuumoPage(
-  url: string
+  url: string,
+  buildingNameFilter?: string
 ): Promise<ScrapedListing[]> {
   const response = await fetch(url, {
     headers: {
       "User-Agent": USER_AGENT,
-      Accept:
-        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       "Accept-Language": "ja,en-US;q=0.7,en;q=0.3",
+      "Accept-Encoding": "gzip, deflate, br",
+      "Cache-Control": "no-cache",
+      Referer: "https://suumo.jp/",
     },
+    signal: AbortSignal.timeout(15000),
   });
 
   if (!response.ok) {
-    throw new Error(
-      `SUUMOページの取得に失敗しました: ${response.status} ${response.statusText}`
-    );
+    throw new Error(`SUUMO取得失敗: ${response.status} ${response.statusText}`);
   }
 
   const html = await response.text();
-  return parseSuumoHtml(html, url);
+  let listings = parseSuumoHtml(html, url);
+
+  // 建物名フィルタリング（部分一致）
+  if (buildingNameFilter) {
+    const normalize = (s: string) =>
+      s.replace(/[\s　]/g, "").replace(/[Ａ-Ｚａ-ｚ０-９]/g, (ch) =>
+        String.fromCharCode(ch.charCodeAt(0) - 0xfee0)
+      ).toLowerCase();
+
+    const filterNorm = normalize(buildingNameFilter);
+    listings = listings.filter((l) => {
+      const nameNorm = normalize(l.mansion_name);
+      // 部分一致 or 類似度チェック
+      return nameNorm.includes(filterNorm) || filterNorm.includes(nameNorm) ||
+        similarityScore(nameNorm, filterNorm) > 0.5;
+    });
+  }
+
+  return listings;
+}
+
+/**
+ * 2ページ目以降も取得して全件スクレイプ
+ */
+export async function scrapeSuumoAllPages(
+  buildingName: string,
+  areaCode?: string,
+  maxPages: number = 3
+): Promise<ScrapedListing[]> {
+  const allListings: ScrapedListing[] = [];
+
+  for (let page = 1; page <= maxPages; page++) {
+    const params = new URLSearchParams({
+      ar: "030",
+      bs: "040",
+      ta: "13",
+      fw: buildingName,
+      srch_navi: "1",
+      pn: String(page),
+    });
+    if (areaCode) params.set("sc", areaCode);
+
+    const url = `https://suumo.jp/jj/chintai/ichiran/FR301FC001/?${params.toString()}`;
+
+    try {
+      const listings = await scrapeSuumoPage(url, buildingName);
+      if (listings.length === 0) break; // 結果なし = 最終ページ超過
+      allListings.push(...listings);
+
+      // レート制限
+      if (page < maxPages) {
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+    } catch (error) {
+      console.error(`[suumo] ページ${page}取得エラー:`, error);
+      break;
+    }
+  }
+
+  return allListings;
 }
 
 /**
@@ -39,121 +141,90 @@ export function parseSuumoHtml(
   const $ = cheerio.load(html);
   const listings: ScrapedListing[] = [];
 
-  // SUUMOの賃貸物件一覧: 各物件カセット
   $(".cassetteitem").each((_index, element) => {
     const $item = $(element);
 
-    // 建物情報（カセット共通部分）
-    const mansionName =
-      $item.find(".cassetteitem_content-title").text().trim() || "";
-    const address =
-      $item.find(".cassetteitem_detail-col1").text().trim() || "";
+    const mansionName = $item.find(".cassetteitem_content-title").text().trim() || "";
+    const address = $item.find(".cassetteitem_detail-col1").text().trim() || "";
 
-    // 最寄り駅情報の抽出
+    // 最寄り駅
     const stationTexts: string[] = [];
-    $item.find(".cassetteitem_detail-col2 .cassetteitem_detail-text").each(
-      (_i, el) => {
-        stationTexts.push($(el).text().trim());
-      }
-    );
-
-    // 最初の駅情報から駅名と徒歩分を抽出
+    $item.find(".cassetteitem_detail-col2 .cassetteitem_detail-text").each((_i, el) => {
+      stationTexts.push($(el).text().trim());
+    });
     const stationInfo = parseStationInfo(stationTexts[0] || "");
 
-    // 建物画像の取得
+    // 建物画像
     const images: ScrapedImage[] = [];
     let exteriorImageUrl: string | null = null;
 
-    // メイン画像（外観）
     const mainImg = $item.find(".cassetteitem_object-item img").attr("rel") ||
+      $item.find(".cassetteitem_object-item img").attr("data-src") ||
       $item.find(".cassetteitem_object-item img").attr("src");
-    if (mainImg && !mainImg.includes("noimage")) {
-      const fullUrl = mainImg.startsWith("http")
-        ? mainImg
-        : new URL(mainImg, baseUrl).toString();
+    if (mainImg && !mainImg.includes("noimage") && !mainImg.includes("spacer.gif")) {
+      const fullUrl = resolveUrl(mainImg, baseUrl);
       exteriorImageUrl = fullUrl;
-      images.push({
-        url: fullUrl,
-        type: "exterior",
-        caption: "外観",
-      });
+      images.push({ url: fullUrl, type: "exterior", caption: "外観" });
     }
 
-    // 設備・特徴情報（建物レベル）
+    // 建物設備
     const buildingFeatures: string[] = [];
     $item.find(".cassetteitem_detail-col3 div").each((_i, el) => {
       const text = $(el).text().trim();
       if (text) buildingFeatures.push(text);
     });
 
-    // 各部屋情報（tbody 行ごと）
+    // 築年数・構造
+    const col3Text = $item.find(".cassetteitem_detail-col3").text();
+    if (col3Text) {
+      const ageMatch = col3Text.match(/(築\d+年|新築)/);
+      if (ageMatch && !buildingFeatures.includes(ageMatch[1])) {
+        buildingFeatures.push(ageMatch[1]);
+      }
+      const structMatch = col3Text.match(/(鉄筋コンクリート|鉄骨鉄筋|鉄骨造|木造|軽量鉄骨)/);
+      if (structMatch && !buildingFeatures.includes(structMatch[1])) {
+        buildingFeatures.push(structMatch[1]);
+      }
+    }
+
+    // 各部屋情報
     $item.find(".cassetteitem_other tbody tr").each((_i, row) => {
       const $row = $(row);
 
-      // 階数
       const floorText = $row.find("td").eq(2).text().trim();
       const floor = parseFloor(floorText);
 
-      // 賃料
       const rentText = $row.find(".cassetteitem_other-emphasis").text().trim();
       const rent = parsePrice(rentText);
 
-      // 管理費
-      const feeText = $row
-        .find(".cassetteitem_price--administration")
-        .text()
-        .trim();
+      const feeText = $row.find(".cassetteitem_price--administration").text().trim();
       const managementFee = parsePrice(feeText);
 
-      // 敷金
-      const depositText = $row
-        .find(".cassetteitem_price--deposit")
-        .text()
-        .trim();
+      const depositText = $row.find(".cassetteitem_price--deposit").text().trim();
       const deposit = parsePrice(depositText);
 
-      // 礼金
-      const keyMoneyText = $row
-        .find(".cassetteitem_price--gratuity")
-        .text()
-        .trim();
+      const keyMoneyText = $row.find(".cassetteitem_price--gratuity").text().trim();
       const keyMoney = parsePrice(keyMoneyText);
 
-      // 間取り
-      const layoutType = $row
-        .find(".cassetteitem_madori")
-        .text()
-        .trim();
-
-      // 面積
-      const sizeText = $row
-        .find(".cassetteitem_menseki")
-        .text()
-        .trim();
+      const layoutType = $row.find(".cassetteitem_madori").text().trim();
+      const sizeText = $row.find(".cassetteitem_menseki").text().trim();
       const sizeSqm = parseSize(sizeText);
 
-      // 間取り図画像
+      // 間取り図
       let floorplanImageUrl: string | null = null;
       const floorplanImg = $row.find(".cassetteitem_other-thumbnail img").attr("rel") ||
+        $row.find(".cassetteitem_other-thumbnail img").attr("data-src") ||
         $row.find(".cassetteitem_other-thumbnail img").attr("src");
-      if (floorplanImg && !floorplanImg.includes("noimage")) {
-        floorplanImageUrl = floorplanImg.startsWith("http")
-          ? floorplanImg
-          : new URL(floorplanImg, baseUrl).toString();
-        images.push({
-          url: floorplanImageUrl,
-          type: "floorplan",
-          caption: "間取り図",
-        });
+      if (floorplanImg && !floorplanImg.includes("noimage") && !floorplanImg.includes("spacer.gif")) {
+        floorplanImageUrl = resolveUrl(floorplanImg, baseUrl);
+        images.push({ url: floorplanImageUrl, type: "floorplan", caption: "間取り図" });
       }
 
-      // 物件詳細URL
-      const detailLink = $row.find("a[href*='/chintai/']").attr("href") || "";
-      const sourceUrl = detailLink
-        ? new URL(detailLink, baseUrl).toString()
-        : baseUrl;
+      // 詳細URL
+      const detailLink = $row.find("a[href*='/chintai/']").attr("href") ||
+        $row.find("a[href*='bc_']").attr("href") || "";
+      const sourceUrl = detailLink ? resolveUrl(detailLink, "https://suumo.jp") : baseUrl;
 
-      // 必須フィールドが取れている場合のみ追加
       if (mansionName && rent > 0) {
         listings.push({
           mansion_name: mansionName,
@@ -183,72 +254,62 @@ export function parseSuumoHtml(
   return listings;
 }
 
-/**
- * 駅情報テキストから駅名と徒歩分を抽出
- * 例: "東京メトロ丸ノ内線/本郷三丁目駅 歩5分"
- */
-function parseStationInfo(text: string): {
-  station: string;
-  minutes: number;
-} {
-  if (!text) return { station: "", minutes: 0 };
+// --- ユーティリティ ---
 
-  // 駅名の抽出（路線名/駅名 形式）
+function parseStationInfo(text: string): { station: string; minutes: number } {
+  if (!text) return { station: "", minutes: 0 };
   const stationMatch = text.match(/\/(.+?駅)/);
   const station = stationMatch ? stationMatch[1] : text.split(" ")[0] || "";
-
-  // 徒歩分の抽出
   const minutesMatch = text.match(/歩(\d+)分/);
   const minutes = minutesMatch ? parseInt(minutesMatch[1], 10) : 0;
-
   return { station, minutes };
 }
 
-/**
- * 階数テキストから数値を抽出
- * 例: "3階" → 3, "B1階" → -1
- */
 function parseFloor(text: string): number | null {
   if (!text) return null;
-
   const basementMatch = text.match(/B(\d+)/i);
   if (basementMatch) return -parseInt(basementMatch[1], 10);
-
   const floorMatch = text.match(/(\d+)階/);
   if (floorMatch) return parseInt(floorMatch[1], 10);
-
   return null;
 }
 
-/**
- * 価格テキストから円単位の数値を抽出
- * 例: "8.5万円" → 85000, "5000円" → 5000, "-" → 0
- */
 export function parsePrice(text: string): number {
-  if (!text || text === "-" || text === "—") return 0;
-
-  // "8.5万円" 形式
+  if (!text || text === "-" || text === "—" || text === "―") return 0;
   const manMatch = text.match(/([\d.]+)\s*万/);
   if (manMatch) return Math.round(parseFloat(manMatch[1]) * 10000);
-
-  // "5000円" 形式
   const yenMatch = text.match(/([\d,]+)\s*円/);
   if (yenMatch) return parseInt(yenMatch[1].replace(/,/g, ""), 10);
-
   return 0;
 }
 
-/**
- * 面積テキストから数値を抽出
- * 例: "25.5m2" → 25.5
- */
 export function parseSize(text: string): number {
   if (!text) return 0;
   const match = text.match(/([\d.]+)/);
   return match ? parseFloat(match[1]) : 0;
 }
 
+function resolveUrl(url: string, base: string): string {
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("//")) return "https:" + url;
+  return new URL(url, base).toString();
+}
+
 /**
- * 駅情報テキストから駅名と徒歩分を抽出（外部公開用）
+ * 簡易文字列類似度（0-1）
  */
+function similarityScore(a: string, b: string): number {
+  if (a === b) return 1;
+  if (a.length === 0 || b.length === 0) return 0;
+
+  // 共通部分文字列の長さベースの簡易スコア
+  let matches = 0;
+  const shorter = a.length < b.length ? a : b;
+  const longer = a.length < b.length ? b : a;
+  for (let i = 0; i < shorter.length; i++) {
+    if (longer.includes(shorter[i])) matches++;
+  }
+  return matches / longer.length;
+}
+
 export { parseStationInfo, parseFloor };
