@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { MANSION_IMAGES } from "@/data/mansion-images";
 
 // 建物一覧取得
 export async function GET(request: NextRequest) {
@@ -140,8 +141,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 画像を整理（sort_order順）
-    const images = ((mansion.property_images as Array<{
+    // 画像を整理（sort_order順）+ 静的データフォールバック
+    const dbImages = ((mansion.property_images as Array<{
       id: string;
       image_url: string;
       image_type: string;
@@ -149,15 +150,22 @@ export async function GET(request: NextRequest) {
       sort_order: number;
     }>) || []).sort((a, b) => a.sort_order - b.sort_order);
 
+    const mansionId = mansion.id as string;
+    const staticImages = MANSION_IMAGES[mansionId] || [];
+
+    // DB画像があればそちらを優先、なければ静的データ
+    const finalImages = dbImages.length > 0
+      ? dbImages.map((img) => ({ url: img.image_url, type: img.image_type, caption: img.caption }))
+      : staticImages.map((img) => ({ url: img.url, type: img.type === "common" ? "entrance" : img.type, caption: img.caption }));
+
     return {
       ...mansion,
       units: undefined,
       property_images: undefined,
-      images: images.map((img) => ({
-        url: img.image_url,
-        type: img.image_type,
-        caption: img.caption,
-      })),
+      images: finalImages,
+      // exterior_image_urlも静的データからフォールバック
+      exterior_image_url: (mansion.exterior_image_url as string) ||
+        staticImages.find((img) => img.type === "exterior")?.url || null,
       active_listings_count: activeListings.length,
       known_unit_types_count: units.length,
       recent_listings_count: recentListings.length,

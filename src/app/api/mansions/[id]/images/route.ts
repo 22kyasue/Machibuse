@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { MANSION_IMAGES } from "@/data/mansion-images";
 
 // 建物の画像一覧取得
 export async function GET(
@@ -16,7 +17,27 @@ export async function GET(
     .order("sort_order", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data || []);
+
+  // DB画像があればそのまま返す
+  if (data && data.length > 0) {
+    return NextResponse.json(data);
+  }
+
+  // DBに画像がない場合、静的データをフォールバック
+  const staticImages = MANSION_IMAGES[id] || [];
+  if (staticImages.length > 0) {
+    const fallback = staticImages.map((img, i) => ({
+      id: `static-${i}`,
+      mansion_id: id,
+      image_url: img.url,
+      image_type: img.type === "common" ? "entrance" : img.type,
+      caption: img.caption,
+      sort_order: i,
+    }));
+    return NextResponse.json(fallback);
+  }
+
+  return NextResponse.json([]);
 }
 
 // 建物に画像を追加
