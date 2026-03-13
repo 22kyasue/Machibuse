@@ -13,7 +13,7 @@ export default function ListingDetailLoading() {
         <Skeleton className="mb-2 h-4 w-40" />
         <Skeleton className="h-6 w-16 rounded-full" />
       </div>
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i}>
@@ -23,7 +23,7 @@ export default function ListingDetailLoading() {
           ))}
         </div>
       </div>
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
         <Skeleton className="mb-3 h-6 w-24" />
         <div className="space-y-2">
           <Skeleton className="h-4 w-full" />

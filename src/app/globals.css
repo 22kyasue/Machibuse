@@ -15,6 +15,23 @@
 body {
   background: #f8fafc;
   color: #0f172a;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* PWA safe area */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* PWA standalone mode - hide browser UI elements */
+@media (display-mode: standalone) {
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
 }
 
 /* Smooth scrolling */

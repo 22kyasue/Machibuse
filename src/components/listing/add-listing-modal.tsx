@@ -83,7 +83,7 @@ export function AddListingModal({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* 賃料（必須） */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-slate-700">
             賃料 <span className="text-red-500">*</span>
           </label>
           <div className="mt-1 flex items-center gap-2">
@@ -95,15 +95,15 @@ export function AddListingModal({
               value={rentMan}
               onChange={(e) => setRentMan(e.target.value)}
               placeholder="12.5"
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
-            <span className="shrink-0 text-sm text-gray-500">万円</span>
+            <span className="shrink-0 text-sm text-slate-500">万円</span>
           </div>
         </div>
 
         {/* 管理費（任意） */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-slate-700">
             管理費
           </label>
           <div className="mt-1 flex items-center gap-2">
@@ -114,15 +114,15 @@ export function AddListingModal({
               value={managementFeeMan}
               onChange={(e) => setManagementFeeMan(e.target.value)}
               placeholder="1.0"
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
-            <span className="shrink-0 text-sm text-gray-500">万円</span>
+            <span className="shrink-0 text-sm text-slate-500">万円</span>
           </div>
         </div>
 
         {/* 所在階（任意） */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-slate-700">
             所在階
           </label>
           <div className="mt-1 flex items-center gap-2">
@@ -132,15 +132,15 @@ export function AddListingModal({
               value={floor}
               onChange={(e) => setFloor(e.target.value)}
               placeholder="3"
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
-            <span className="shrink-0 text-sm text-gray-500">階</span>
+            <span className="shrink-0 text-sm text-slate-500">階</span>
           </div>
         </div>
 
         {/* 掲載元サイト名（任意） */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-slate-700">
             掲載元サイト名
           </label>
           <input
@@ -148,13 +148,13 @@ export function AddListingModal({
             value={sourceSite}
             onChange={(e) => setSourceSite(e.target.value)}
             placeholder="SUUMO"
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
 
         {/* 掲載元URL（任意） */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-slate-700">
             掲載元URL
           </label>
           <input
@@ -162,7 +162,7 @@ export function AddListingModal({
             value={sourceUrl}
             onChange={(e) => setSourceUrl(e.target.value)}
             placeholder="https://suumo.jp/..."
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
 

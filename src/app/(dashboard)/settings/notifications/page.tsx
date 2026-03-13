@@ -63,8 +63,24 @@ export default function NotificationSettingsPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-2xl py-12 text-center text-slate-500">
-        読み込み中...
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div className="h-8 w-32 animate-pulse rounded-lg bg-slate-200" />
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
+          <div className="h-6 w-28 animate-pulse rounded bg-slate-200" />
+          <div className="h-10 w-full animate-pulse rounded-lg bg-slate-100" />
+        </div>
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-3">
+          <div className="h-6 w-32 animate-pulse rounded bg-slate-200" />
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex justify-between items-center">
+              <div className="space-y-1">
+                <div className="h-4 w-20 animate-pulse rounded bg-slate-200" />
+                <div className="h-3 w-40 animate-pulse rounded bg-slate-100" />
+              </div>
+              <div className="h-6 w-11 animate-pulse rounded-full bg-slate-200" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -84,12 +100,12 @@ export default function NotificationSettingsPage() {
               <span className="text-sm text-slate-600">メール通知を有効にする</span>
               <button
                 onClick={() => setEmailEnabled(!emailEnabled)}
-                className={`relative h-6 w-11 rounded-full transition-colors ${
-                  emailEnabled ? "bg-slate-900" : "bg-slate-200"
+                className={`relative h-7 w-12 rounded-full transition-all duration-300 ${
+                  emailEnabled ? "bg-emerald-500 shadow-emerald-200 shadow-md" : "bg-slate-200"
                 }`}
               >
                 <span
-                  className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                  className={`absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-white shadow-sm transition-all duration-300 ${
                     emailEnabled ? "translate-x-5" : ""
                   }`}
                 />
@@ -133,12 +149,12 @@ export default function NotificationSettingsPage() {
                 </div>
                 <button
                   onClick={() => item.set(!item.value)}
-                  className={`relative mt-0.5 h-6 w-11 flex-shrink-0 rounded-full transition-colors ${
-                    item.value ? "bg-slate-900" : "bg-slate-200"
+                  className={`relative mt-0.5 h-7 w-12 flex-shrink-0 rounded-full transition-all duration-300 ${
+                    item.value ? "bg-emerald-500 shadow-emerald-200 shadow-md" : "bg-slate-200"
                   }`}
                 >
                   <span
-                    className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    className={`absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-white shadow-sm transition-all duration-300 ${
                       item.value ? "translate-x-5" : ""
                     }`}
                   />

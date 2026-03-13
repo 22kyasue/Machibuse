@@ -26,13 +26,16 @@ export default function FavoritesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // リアクティブに更新するために定期チェック
+  // storage イベントで他タブからの変更をリアクティブに反映
   useEffect(() => {
-    const interval = setInterval(() => {
-      const favs = getFavorites("mansion");
-      setFavIds(favs.map((f) => f.id));
-    }, 500);
-    return () => clearInterval(interval);
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "favorites_mansion" || e.key === null) {
+        const favs = getFavorites("mansion");
+        setFavIds(favs.map((f) => f.id));
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
   const favMansions = useMemo(

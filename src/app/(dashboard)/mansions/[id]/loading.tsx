@@ -11,7 +11,7 @@ export default function MansionDetailLoading() {
       </div>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm text-center">
+          <div key={i} className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm text-center">
             <Skeleton className="mx-auto mb-1 h-8 w-12" />
             <Skeleton className="mx-auto h-3 w-16" />
           </div>

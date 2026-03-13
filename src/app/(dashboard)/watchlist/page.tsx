@@ -225,29 +225,33 @@ export default function WatchlistPage() {
                       </span>
                     </div>
                   </Link>
-                  <div className="flex flex-shrink-0 gap-2">
+                  <div className="flex flex-shrink-0 gap-1.5 sm:gap-2">
                     <button
                       onClick={() => setConditionsModal(mansion.id)}
-                      className="rounded-lg border border-blue-200/60 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50/80"
+                      className="rounded-lg border border-blue-200/60 p-2 sm:px-3 sm:py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50/80"
                       title="監視条件を設定"
                     >
-                      条件設定
+                      <svg className="h-4 w-4 sm:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" /></svg>
+                      <span className="hidden sm:inline">条件設定</span>
                     </button>
                     <button
                       onClick={() => {
                         setEditingMemo(editingMemo === mansion.id ? null : mansion.id);
                         setMemoText(memos[mansion.id] || "");
                       }}
-                      className="rounded-lg border border-slate-200/60 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                      className="rounded-lg border border-slate-200/60 p-2 sm:px-3 sm:py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
                       title="メモ"
                     >
-                      {memos[mansion.id] ? "メモ編集" : "メモ追加"}
+                      <svg className="h-4 w-4 sm:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                      <span className="hidden sm:inline">{memos[mansion.id] ? "メモ編集" : "メモ追加"}</span>
                     </button>
                     <button
                       onClick={() => handleUnwatch(mansion.id)}
-                      className="rounded-lg border border-red-200/60 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50/80"
+                      className="rounded-lg border border-red-200/60 p-2 sm:px-3 sm:py-1.5 text-xs font-medium text-red-500 hover:bg-red-50/80"
+                      title="監視解除"
                     >
-                      解除
+                      <svg className="h-4 w-4 sm:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                      <span className="hidden sm:inline">解除</span>
                     </button>
                   </div>
                 </div>

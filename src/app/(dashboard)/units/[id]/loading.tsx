@@ -13,10 +13,10 @@ export default function UnitDetailLoading() {
         <Skeleton className="mb-2 h-4 w-48" />
         <Skeleton className="h-6 w-16 rounded-full" />
       </div>
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
         <Skeleton className="mb-4 h-64 w-full" />
       </div>
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
         <Skeleton className="mb-3 h-6 w-32" />
         <div className="grid grid-cols-3 gap-4">
           <Skeleton className="h-12 w-full" />

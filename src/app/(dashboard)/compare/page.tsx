@@ -189,10 +189,43 @@ export default function ComparePage() {
         </div>
       </div>
 
-      {/* 比較テーブル */}
-      <div className="overflow-x-auto">
+      {/* モバイル: カード表示 */}
+      <div className="space-y-4 sm:hidden">
+        {mansions.map((m, idx) => (
+          <Card key={m.id} className="animate-fade-in-up" style={{ animationDelay: `${idx * 80}ms` }}>
+            <CardContent>
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <Link href={`/mansions/${m.id}`}>
+                  <h3 className="font-semibold text-slate-900 hover:text-blue-600">{m.name}</h3>
+                  <div className="mt-1">
+                    <StatusTag status={m.active_listings_count > 0 ? "active" : m.last_listing_date ? "past" : "unknown"} />
+                  </div>
+                </Link>
+                <button
+                  onClick={() => handleRemove(m.id)}
+                  className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="space-y-2">
+                {compareRows.map((row, i) => (
+                  <div key={row.label} className={`flex justify-between gap-2 rounded-lg px-3 py-2 text-sm ${i % 2 === 0 ? "bg-slate-50/60" : ""}`}>
+                    <span className="text-slate-500 flex-shrink-0">{row.label}</span>
+                    <span className="text-slate-900 text-right">{row.getValue(m)}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* デスクトップ: テーブル表示 */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full border-collapse text-sm">
-          {/* ヘッダー: 物件名 */}
           <thead>
             <tr>
               <th className="sticky left-0 z-10 w-28 bg-slate-50 p-3 text-left text-xs font-medium text-slate-500">

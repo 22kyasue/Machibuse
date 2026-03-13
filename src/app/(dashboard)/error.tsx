@@ -19,10 +19,10 @@ export default function DashboardError({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h2 className="mb-2 text-lg font-semibold text-gray-900">
+          <h2 className="mb-2 text-lg font-semibold text-slate-900">
             エラーが発生しました
           </h2>
-          <p className="mb-4 text-sm text-gray-500">
+          <p className="mb-4 text-sm text-slate-500">
             {error.message || "予期しないエラーが発生しました。もう一度お試しください。"}
           </p>
           <Button onClick={reset}>再試行</Button>

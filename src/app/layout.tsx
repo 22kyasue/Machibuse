@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_JP } from "next/font/google";
+import { InstallPrompt } from "@/components/ui/install-prompt";
 import "./globals.css";
 
 const inter = Inter({
@@ -20,6 +21,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: "#0f172a",
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
@@ -28,8 +30,12 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "MACHIBUSE",
+    startupImage: "/icons/icon-512.png",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
   },
 };
 
@@ -45,6 +51,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${notoSansJP.variable} font-sans antialiased`}>
         {children}
+        <InstallPrompt />
         <script
           dangerouslySetInnerHTML={{
             __html: `

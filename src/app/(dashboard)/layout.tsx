@@ -24,7 +24,9 @@ export default function DashboardLayout({
           <Header onMenuToggle={() => setSidebarOpen(true)} />
         </div>
         <main className={`flex-1 overflow-y-auto ${isMansions ? "p-0 lg:p-6" : "p-5 lg:p-6"}`}>
-          {children}
+          <div key={pathname} className="animate-fade-in">
+            {children}
+          </div>
         </main>
       </div>
     </div>

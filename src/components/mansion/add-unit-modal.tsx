@@ -70,12 +70,12 @@ export function AddUnitModal({ isOpen, onClose, mansionId, onSubmit }: AddUnitMo
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">間取り *</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">間取り *</label>
             <select
               required
               value={form.layout_type}
               onChange={(e) => update("layout_type", e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">選択してください</option>
               {layoutOptions.map((opt) => (
@@ -84,7 +84,7 @@ export function AddUnitModal({ isOpen, onClose, mansionId, onSubmit }: AddUnitMo
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">専有面積（㎡）*</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">専有面積（㎡）*</label>
             <input
               type="number"
               required
@@ -92,7 +92,7 @@ export function AddUnitModal({ isOpen, onClose, mansionId, onSubmit }: AddUnitMo
               step={0.1}
               value={form.size_sqm || ""}
               onChange={(e) => update("size_sqm", parseFloat(e.target.value) || 0)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="71.2"
             />
           </div>
@@ -100,11 +100,11 @@ export function AddUnitModal({ isOpen, onClose, mansionId, onSubmit }: AddUnitMo
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">向き</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">向き</label>
             <select
               value={form.direction}
               onChange={(e) => update("direction", e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">選択してください</option>
               {directionOptions.map((opt) => (
@@ -113,12 +113,12 @@ export function AddUnitModal({ isOpen, onClose, mansionId, onSubmit }: AddUnitMo
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">階数範囲</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">階数範囲</label>
             <input
               type="text"
               value={form.floor_range}
               onChange={(e) => update("floor_range", e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="例: 20-30F"
             />
           </div>
@@ -126,34 +126,34 @@ export function AddUnitModal({ isOpen, onClose, mansionId, onSubmit }: AddUnitMo
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">部屋番号</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">部屋番号</label>
             <input
               type="text"
               value={form.room_number}
               onChange={(e) => update("room_number", e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="例: 2401"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">バルコニー</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">バルコニー</label>
             <input
               type="text"
               value={form.balcony}
               onChange={(e) => update("balcony", e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="例: 12.5㎡"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">備考</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">備考</label>
           <textarea
             value={form.memo}
             onChange={(e) => update("memo", e.target.value)}
             rows={2}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
 
