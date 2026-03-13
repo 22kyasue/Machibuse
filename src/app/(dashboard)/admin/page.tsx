@@ -818,6 +818,7 @@ function ListingForm({
 }) {
   const [loading, setLoading] = useState(false);
   const [selectedMansionId, setSelectedMansionId] = useState("");
+  const [listingType, setListingType] = useState<"rental" | "sale">("rental");
 
   const filteredUnits = units.filter((u) => u.mansion_id === selectedMansionId);
 
@@ -825,16 +826,24 @@ function ListingForm({
     e.preventDefault();
     setLoading(true);
     const fd = new FormData(e.currentTarget);
-    const body = {
+    const body: Record<string, unknown> = {
       unit_id: fd.get("unit_id"),
+      listing_type: listingType,
       status: fd.get("status"),
-      current_rent: Number(fd.get("current_rent")),
-      management_fee: Number(fd.get("management_fee")) || null,
       floor: Number(fd.get("floor")) || null,
       source_site: fd.get("source_site") || null,
       source_url: fd.get("source_url") || null,
       detected_at: fd.get("detected_at") || null,
     };
+    if (listingType === "sale") {
+      body.sale_price = Number(fd.get("sale_price")) || null;
+      body.price_per_sqm = Number(fd.get("price_per_sqm")) || null;
+      body.maintenance_fee_sale = Number(fd.get("maintenance_fee_sale")) || null;
+      body.repair_reserve_fund = Number(fd.get("repair_reserve_fund")) || null;
+    } else {
+      body.current_rent = Number(fd.get("current_rent"));
+      body.management_fee = Number(fd.get("management_fee")) || null;
+    }
 
     try {
       const res = await fetch("/api/listings", {
@@ -865,11 +874,32 @@ function ListingForm({
           </div>
           <div>
             <h2 className={sectionTitle}>募集登録</h2>
-            <p className={`mt-1 ${sectionDesc}`}>新しい賃貸募集情報を登録</p>
+            <p className={`mt-1 ${sectionDesc}`}>賃貸・売買の募集情報を登録</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* 種別切り替え */}
+          <div>
+            <label className={labelClass}>種別 <span className="text-red-400">*</span></label>
+            <div className="flex gap-2">
+              {(["rental", "sale"] as const).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setListingType(type)}
+                  className={`flex-1 rounded-xl py-2.5 text-sm font-medium transition-all duration-200 ${
+                    listingType === type
+                      ? "bg-blue-500 text-white shadow-sm"
+                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  }`}
+                >
+                  {type === "rental" ? "賃貸" : "売買"}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className={labelClass}>建物 <span className="text-red-400">*</span></label>
@@ -904,14 +934,37 @@ function ListingForm({
                 <option value="ended">終了</option>
               </select>
             </div>
-            <div>
-              <label className={labelClass}>賃料 <span className="text-red-400">*</span></label>
-              <input name="current_rent" type="number" min="0" required className={inputClass} placeholder="200000" />
-            </div>
-            <div>
-              <label className={labelClass}>管理費</label>
-              <input name="management_fee" type="number" min="0" className={inputClass} placeholder="15000" />
-            </div>
+            {listingType === "rental" ? (
+              <>
+                <div>
+                  <label className={labelClass}>賃料 <span className="text-red-400">*</span></label>
+                  <input name="current_rent" type="number" min="0" required className={inputClass} placeholder="200000" />
+                </div>
+                <div>
+                  <label className={labelClass}>管理費</label>
+                  <input name="management_fee" type="number" min="0" className={inputClass} placeholder="15000" />
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className={labelClass}>売買価格 <span className="text-red-400">*</span></label>
+                  <input name="sale_price" type="number" min="0" required className={inputClass} placeholder="50000000" />
+                </div>
+                <div>
+                  <label className={labelClass}>㎡単価</label>
+                  <input name="price_per_sqm" type="number" min="0" className={inputClass} placeholder="1000000" />
+                </div>
+                <div>
+                  <label className={labelClass}>管理費（月額）</label>
+                  <input name="maintenance_fee_sale" type="number" min="0" className={inputClass} placeholder="20000" />
+                </div>
+                <div>
+                  <label className={labelClass}>修繕積立金（月額）</label>
+                  <input name="repair_reserve_fund" type="number" min="0" className={inputClass} placeholder="15000" />
+                </div>
+              </>
+            )}
             <div>
               <label className={labelClass}>階数</label>
               <input name="floor" type="number" min="0" className={inputClass} placeholder="5" />

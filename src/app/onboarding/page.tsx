@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   type UserPreferences,
+  type PropertyType,
   DEFAULT_PREFERENCES,
   savePreferences,
   loadPreferences,
@@ -19,6 +20,20 @@ const RENT_PRESETS = [
   { label: "25~40万", min: 25, max: 40 },
   { label: "40~60万", min: 40, max: 60 },
   { label: "60万~", min: 60, max: null },
+];
+
+const SALE_PRICE_PRESETS = [
+  { label: "~3,000万", min: null, max: 3000 },
+  { label: "3,000~5,000万", min: 3000, max: 5000 },
+  { label: "5,000~8,000万", min: 5000, max: 8000 },
+  { label: "8,000万~1.5億", min: 8000, max: 15000 },
+  { label: "1.5億~", min: 15000, max: null },
+];
+
+const PROPERTY_TYPES: { value: PropertyType; label: string; desc: string }[] = [
+  { value: "rental", label: "賃貸", desc: "賃貸物件を探す" },
+  { value: "sale", label: "売買", desc: "購入物件を探す" },
+  { value: "both", label: "両方", desc: "賃貸・売買どちらも" },
 ];
 
 export default function OnboardingPage() {
@@ -93,7 +108,45 @@ export default function OnboardingPage() {
     router.push("/mansions");
   }
 
+  function selectSalePricePreset(preset: { min: number | null; max: number | null }) {
+    setPrefs((prev) => ({
+      ...prev,
+      priceMin: preset.min,
+      priceMax: preset.max,
+    }));
+  }
+
   const steps = [
+    {
+      icon: (
+        <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+        </svg>
+      ),
+      title: "物件タイプ",
+      subtitle: "探している物件の種類",
+      content: (
+        <div className="flex flex-col gap-3 mx-auto max-w-xs">
+          {PROPERTY_TYPES.map((type) => {
+            const selected = prefs.propertyType === type.value;
+            return (
+              <button
+                key={type.value}
+                onClick={() => setPrefs((prev) => ({ ...prev, propertyType: type.value }))}
+                className={`rounded-2xl px-6 py-5 text-left transition-all duration-200 ${
+                  selected
+                    ? "bg-white text-[#0a0a0f] shadow-[0_0_20px_rgba(255,255,255,0.15)] scale-[1.02]"
+                    : "bg-white/[0.06] text-white/60 border border-white/[0.08] hover:bg-white/[0.1] hover:text-white/80"
+                }`}
+              >
+                <span className="text-[16px] font-bold">{type.label}</span>
+                <span className={`ml-3 text-[13px] ${selected ? "text-slate-500" : "text-white/40"}`}>{type.desc}</span>
+              </button>
+            );
+          })}
+        </div>
+      ),
+    },
     {
       icon: (
         <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -161,47 +214,62 @@ export default function OnboardingPage() {
         </svg>
       ),
       title: "予算を設定",
-      subtitle: "月額の予算感",
+      subtitle: prefs.propertyType === "sale" ? "購入価格の予算感" : "月額の予算感",
       content: (
         <div className="space-y-4">
-          <div className="flex flex-wrap justify-center gap-2.5">
-            {RENT_PRESETS.map((preset) => {
-              const selected = prefs.rentMin === preset.min && prefs.rentMax === preset.max;
-              return (
-                <button
-                  key={preset.label}
-                  onClick={() => selectRentPreset(preset)}
-                  className={`rounded-2xl px-5 py-3 text-[14px] font-semibold transition-all duration-200 ${
-                    selected
-                      ? "bg-white text-[#0a0a0f] shadow-[0_0_20px_rgba(255,255,255,0.15)]"
-                      : "bg-white/[0.06] text-white/60 border border-white/[0.08] hover:bg-white/[0.1] hover:text-white/80"
-                  }`}
-                >
-                  {preset.label}
-                </button>
-              );
-            })}
-          </div>
-          <div className="flex items-center gap-3 mx-auto max-w-xs">
-            <input
-              type="number"
-              min={0}
-              placeholder="下限"
-              value={prefs.rentMin ?? ""}
-              onChange={(e) => setPrefs((prev) => ({ ...prev, rentMin: e.target.value === "" ? null : Number(e.target.value) }))}
-              className="w-full rounded-2xl bg-white/[0.06] border border-white/[0.08] px-4 py-3 text-center text-white placeholder:text-white/30 focus:border-white/20 focus:outline-none focus:ring-1 focus:ring-white/10 transition-all"
-            />
-            <span className="text-white/30 text-sm shrink-0">~</span>
-            <input
-              type="number"
-              min={0}
-              placeholder="上限"
-              value={prefs.rentMax ?? ""}
-              onChange={(e) => setPrefs((prev) => ({ ...prev, rentMax: e.target.value === "" ? null : Number(e.target.value) }))}
-              className="w-full rounded-2xl bg-white/[0.06] border border-white/[0.08] px-4 py-3 text-center text-white placeholder:text-white/30 focus:border-white/20 focus:outline-none focus:ring-1 focus:ring-white/10 transition-all"
-            />
-            <span className="text-white/40 text-xs shrink-0">万円</span>
-          </div>
+          {/* 賃貸予算 */}
+          {prefs.propertyType !== "sale" && (
+            <>
+              {prefs.propertyType === "both" && (
+                <p className="text-center text-[13px] text-white/40 mb-1">賃料（月額）</p>
+              )}
+              <div className="flex flex-wrap justify-center gap-2.5">
+                {RENT_PRESETS.map((preset) => {
+                  const selected = prefs.rentMin === preset.min && prefs.rentMax === preset.max;
+                  return (
+                    <button
+                      key={preset.label}
+                      onClick={() => selectRentPreset(preset)}
+                      className={`rounded-2xl px-5 py-3 text-[14px] font-semibold transition-all duration-200 ${
+                        selected
+                          ? "bg-white text-[#0a0a0f] shadow-[0_0_20px_rgba(255,255,255,0.15)]"
+                          : "bg-white/[0.06] text-white/60 border border-white/[0.08] hover:bg-white/[0.1] hover:text-white/80"
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* 売買予算 */}
+          {prefs.propertyType !== "rental" && (
+            <>
+              {prefs.propertyType === "both" && (
+                <p className="text-center text-[13px] text-white/40 mt-4 mb-1">売買価格</p>
+              )}
+              <div className="flex flex-wrap justify-center gap-2.5">
+                {SALE_PRICE_PRESETS.map((preset) => {
+                  const selected = prefs.priceMin === preset.min && prefs.priceMax === preset.max;
+                  return (
+                    <button
+                      key={preset.label}
+                      onClick={() => selectSalePricePreset(preset)}
+                      className={`rounded-2xl px-5 py-3 text-[14px] font-semibold transition-all duration-200 ${
+                        selected
+                          ? "bg-white text-[#0a0a0f] shadow-[0_0_20px_rgba(255,255,255,0.15)]"
+                          : "bg-white/[0.06] text-white/60 border border-white/[0.08] hover:bg-white/[0.1] hover:text-white/80"
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       ),
     },

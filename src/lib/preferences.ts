@@ -1,20 +1,28 @@
 import type { MansionWithStats } from "@/types";
 
+export type PropertyType = "rental" | "sale" | "both";
+
 export interface UserPreferences {
+  propertyType: PropertyType;
   areas: string[];
   layouts: string[];
   rentMax: number | null; // 万円
   rentMin: number | null; // 万円
+  priceMax: number | null; // 万円（売買価格上限）
+  priceMin: number | null; // 万円（売買価格下限）
   walkingMax: number | null; // 分
   sizeMin: number | null; // ㎡
   features: string[]; // こだわり条件
 }
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
+  propertyType: "both",
   areas: [],
   layouts: [],
   rentMax: null,
   rentMin: null,
+  priceMax: null,
+  priceMin: null,
   walkingMax: null,
   sizeMin: null,
   features: [],
@@ -122,10 +130,13 @@ export function loadPreferences(): UserPreferences {
     if (!raw) return { ...DEFAULT_PREFERENCES };
     const parsed = JSON.parse(raw);
     return {
+      propertyType: ["rental", "sale", "both"].includes(parsed.propertyType) ? parsed.propertyType : "both",
       areas: Array.isArray(parsed.areas) ? parsed.areas : [],
       layouts: Array.isArray(parsed.layouts) ? parsed.layouts : [],
       rentMax: typeof parsed.rentMax === "number" ? parsed.rentMax : null,
       rentMin: typeof parsed.rentMin === "number" ? parsed.rentMin : null,
+      priceMax: typeof parsed.priceMax === "number" ? parsed.priceMax : null,
+      priceMin: typeof parsed.priceMin === "number" ? parsed.priceMin : null,
       walkingMax: typeof parsed.walkingMax === "number" ? parsed.walkingMax : null,
       sizeMin: typeof parsed.sizeMin === "number" ? parsed.sizeMin : null,
       features: Array.isArray(parsed.features) ? parsed.features : [],
@@ -137,10 +148,13 @@ export function loadPreferences(): UserPreferences {
 
 export function hasPreferences(prefs: UserPreferences): boolean {
   return (
+    prefs.propertyType !== "both" ||
     prefs.areas.length > 0 ||
     prefs.layouts.length > 0 ||
     prefs.rentMax !== null ||
     prefs.rentMin !== null ||
+    prefs.priceMax !== null ||
+    prefs.priceMin !== null ||
     prefs.walkingMax !== null ||
     prefs.sizeMin !== null ||
     prefs.features.length > 0
@@ -252,6 +266,29 @@ export const LAYOUT_OPTIONS = [
   "3K", "3DK", "3LDK",
   "4K", "4DK", "4LDK",
   "5DK以上",
+];
+
+// 物件種別選択肢
+export const PROPERTY_TYPE_OPTIONS: { value: PropertyType; label: string }[] = [
+  { value: "both", label: "すべて" },
+  { value: "rental", label: "賃貸" },
+  { value: "sale", label: "売買" },
+];
+
+// 売買価格選択肢（万円）
+export const SALE_PRICE_OPTIONS = [
+  { value: null, label: "指定なし" },
+  { value: 1000, label: "1,000万円" },
+  { value: 2000, label: "2,000万円" },
+  { value: 3000, label: "3,000万円" },
+  { value: 4000, label: "4,000万円" },
+  { value: 5000, label: "5,000万円" },
+  { value: 6000, label: "6,000万円" },
+  { value: 8000, label: "8,000万円" },
+  { value: 10000, label: "1億円" },
+  { value: 15000, label: "1.5億円" },
+  { value: 20000, label: "2億円" },
+  { value: 30000, label: "3億円" },
 ];
 
 // 賃料選択肢（万円）

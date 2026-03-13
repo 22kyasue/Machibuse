@@ -65,8 +65,8 @@ export default function MansionsPage() {
   const [prefs, setPrefs] = useState<UserPreferences | null>(null);
   const [watchedIds, setWatchedIds] = useState<string[]>([]);
   const [searchPrefs, setSearchPrefs] = useState<UserPreferences>({
-    areas: [], layouts: [], rentMax: null, rentMin: null,
-    walkingMax: null, sizeMin: null, features: [],
+    propertyType: "both", areas: [], layouts: [], rentMax: null, rentMin: null,
+    priceMax: null, priceMin: null, walkingMax: null, sizeMin: null, features: [],
   });
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
@@ -149,8 +149,8 @@ export default function MansionsPage() {
 
   function resetSearch() {
     setSearchPrefs({
-      areas: [], layouts: [], rentMax: null, rentMin: null,
-      walkingMax: null, sizeMin: null, features: [],
+      propertyType: "both", areas: [], layouts: [], rentMax: null, rentMin: null,
+      priceMax: null, priceMin: null, walkingMax: null, sizeMin: null, features: [],
     });
   }
 

@@ -47,25 +47,34 @@ export interface Unit {
 
 // 募集情報
 export type ListingStatus = "active" | "past" | "ended";
+export type ListingType = "rental" | "sale";
 
 export interface Listing {
   id: string;
   unit_id: string;
+  listing_type: ListingType;
   status: ListingStatus;
+  // 賃貸用
   current_rent: number;
   management_fee: number | null;
-  floor: number | null;
-  source_site: string | null;
-  source_url: string | null;
-  detected_at: string;
-  ended_at: string | null;
-  scraped_at: string | null;
   deposit: number | null;
   key_money: number | null;
   guarantee_deposit: number | null;
   renewal_fee: string | null;
   contract_period: string | null;
   move_in_date: string | null;
+  // 売買用
+  sale_price: number | null;
+  price_per_sqm: number | null;
+  maintenance_fee_sale: number | null;
+  repair_reserve_fund: number | null;
+  // 共通
+  floor: number | null;
+  source_site: string | null;
+  source_url: string | null;
+  detected_at: string;
+  ended_at: string | null;
+  scraped_at: string | null;
   conditions: string | null;
   interior_features: string[] | null;
   building_features: string[] | null;

@@ -115,24 +115,41 @@ export async function processScrapedListingsWithNotifications(
 
       if (existingListings && existingListings.length > 0) {
         const existing = existingListings[0];
+        const isSale = listing.listing_type === "sale";
 
-        if (existing.current_rent !== listing.rent) {
-          // 賃料変更
+        const priceChanged = isSale
+          ? existing.current_rent !== (listing.sale_price || 0)
+          : existing.current_rent !== listing.rent;
+
+        if (priceChanged) {
+          // 価格変更
+          const updateData: Record<string, unknown> = {
+            scraped_at: new Date().toISOString(),
+          };
+          if (isSale) {
+            updateData.sale_price = listing.sale_price;
+            updateData.price_per_sqm = listing.price_per_sqm;
+            updateData.maintenance_fee_sale = listing.maintenance_fee_sale;
+            updateData.repair_reserve_fund = listing.repair_reserve_fund;
+          } else {
+            updateData.current_rent = listing.rent;
+            updateData.management_fee = listing.management_fee;
+          }
           await supabase
             .from("listings")
-            .update({
-              current_rent: listing.rent,
-              management_fee: listing.management_fee,
-              scraped_at: new Date().toISOString(),
-            })
+            .update(updateData)
             .eq("id", existing.id);
 
+          const oldPrice = isSale ? existing.current_rent : existing.current_rent;
+          const newPrice = isSale ? (listing.sale_price || 0) : listing.rent;
+          const priceLabel = isSale ? "価格" : "賃料";
+          const unit = isSale ? "万円" : "万円";
           const sent = await createNotificationAndEmail({
             supabase,
             mansionId,
             type: "price_change",
-            title: `賃料変更: ${listing.mansion_name}`,
-            message: `${listing.layout_type} ${listing.size_sqm}㎡ の賃料が ${(existing.current_rent / 10000).toFixed(1)}万円 → ${(listing.rent / 10000).toFixed(1)}万円 に変更されました`,
+            title: `${priceLabel}変更: ${listing.mansion_name}`,
+            message: `${listing.layout_type} ${listing.size_sqm}㎡ の${priceLabel}が ${(oldPrice / 10000).toFixed(1)}${unit} → ${(newPrice / 10000).toFixed(1)}${unit} に変更されました`,
             listingId: existing.id,
             watchersByMansion,
             allSettings,
@@ -173,24 +190,35 @@ export async function processScrapedListingsWithNotifications(
         }
       } else {
         // 4. 新規リスティング作成
+        const isSaleListing = listing.listing_type === "sale";
+        const insertData: Record<string, unknown> = {
+          unit_id: unitId,
+          listing_type: listing.listing_type || "rental",
+          status: "active",
+          floor: listing.floor,
+          source_site: listing.source_site,
+          source_url: listing.source_url,
+          move_in_date: listing.move_in_date,
+          interior_features: listing.interior_features,
+          building_features: listing.building_features,
+          detected_at: new Date().toISOString(),
+          scraped_at: new Date().toISOString(),
+        };
+        if (isSaleListing) {
+          insertData.current_rent = 0;
+          insertData.sale_price = listing.sale_price;
+          insertData.price_per_sqm = listing.price_per_sqm;
+          insertData.maintenance_fee_sale = listing.maintenance_fee_sale;
+          insertData.repair_reserve_fund = listing.repair_reserve_fund;
+        } else {
+          insertData.current_rent = listing.rent;
+          insertData.management_fee = listing.management_fee;
+          insertData.deposit = listing.deposit;
+          insertData.key_money = listing.key_money;
+        }
         const { data: newListing } = await supabase
           .from("listings")
-          .insert({
-            unit_id: unitId,
-            status: "active",
-            current_rent: listing.rent,
-            management_fee: listing.management_fee,
-            floor: listing.floor,
-            source_site: listing.source_site,
-            source_url: listing.source_url,
-            deposit: listing.deposit,
-            key_money: listing.key_money,
-            move_in_date: listing.move_in_date,
-            interior_features: listing.interior_features,
-            building_features: listing.building_features,
-            detected_at: new Date().toISOString(),
-            scraped_at: new Date().toISOString(),
-          })
+          .insert(insertData)
           .select("id")
           .single();
 
@@ -212,12 +240,16 @@ export async function processScrapedListingsWithNotifications(
             }
           }
 
+          const newPrice = isSaleListing ? (listing.sale_price || 0) : listing.rent;
+          const newPriceLabel = isSaleListing
+            ? `${(newPrice / 10000).toFixed(0)}万円（売買）`
+            : `${(newPrice / 10000).toFixed(1)}万円`;
           const sent = await createNotificationAndEmail({
             supabase,
             mansionId,
             type: "new_listing",
             title: `新着: ${listing.mansion_name}`,
-            message: `${listing.layout_type} ${listing.size_sqm}㎡ ${listing.floor ? listing.floor + "F" : ""} が ${(listing.rent / 10000).toFixed(1)}万円 で掲載されました`,
+            message: `${listing.layout_type} ${listing.size_sqm}㎡ ${listing.floor ? listing.floor + "F" : ""} が ${newPriceLabel} で掲載されました`,
             listingId: newListing.id,
             watchersByMansion,
             allSettings,

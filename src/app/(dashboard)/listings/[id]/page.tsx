@@ -62,16 +62,25 @@ export default async function ListingDetailPage({
   }
 
   // 費用項目のヘルパー
-  const costItems: { label: string; value: string | number | null; format: string }[] = [
-    { label: "賃料", value: listing.current_rent, format: "yen-man" },
-    { label: "管理費", value: listing.management_fee, format: "yen" },
-    { label: "敷金", value: listing.deposit ?? null, format: "yen-man" },
-    { label: "礼金", value: listing.key_money ?? null, format: "yen-man" },
-    { label: "保証金", value: listing.guarantee_deposit ?? null, format: "yen-man" },
-    { label: "更新料", value: listing.renewal_fee ?? null, format: "text" },
-    { label: "契約期間", value: listing.contract_period ?? null, format: "text" },
-    { label: "入居可能日", value: listing.move_in_date ?? null, format: "text" },
-  ].filter((item) => item.value != null);
+  const isSale = listing.listing_type === "sale";
+  const costItems: { label: string; value: string | number | null; format: string }[] = isSale
+    ? [
+        { label: "売買価格", value: listing.sale_price, format: "yen-man" },
+        { label: "㎡単価", value: listing.price_per_sqm, format: "yen-man" },
+        { label: "管理費（月額）", value: listing.maintenance_fee_sale, format: "yen" },
+        { label: "修繕積立金", value: listing.repair_reserve_fund, format: "yen" },
+        { label: "入居可能日", value: listing.move_in_date ?? null, format: "text" },
+      ].filter((item) => item.value != null)
+    : [
+        { label: "賃料", value: listing.current_rent, format: "yen-man" },
+        { label: "管理費", value: listing.management_fee, format: "yen" },
+        { label: "敷金", value: listing.deposit ?? null, format: "yen-man" },
+        { label: "礼金", value: listing.key_money ?? null, format: "yen-man" },
+        { label: "保証金", value: listing.guarantee_deposit ?? null, format: "yen-man" },
+        { label: "更新料", value: listing.renewal_fee ?? null, format: "text" },
+        { label: "契約期間", value: listing.contract_period ?? null, format: "text" },
+        { label: "入居可能日", value: listing.move_in_date ?? null, format: "text" },
+      ].filter((item) => item.value != null);
 
   function formatCost(value: unknown, format: string): string {
     if (value == null) return "-";
@@ -131,10 +140,15 @@ export default async function ListingDetailPage({
         <p className="mt-1 text-sm text-gray-500">
           {unit?.layout_type} / {unit?.size_sqm}㎡ / {listing.floor}F
         </p>
-        <div className="mt-2">
+        <div className="mt-2 flex items-center gap-2">
           <StatusTag
             status={listing.status === "active" ? "active" : "ended"}
           />
+          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            isSale ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
+          }`}>
+            {isSale ? "売買" : "賃貸"}
+          </span>
         </div>
       </div>
 
@@ -151,7 +165,7 @@ export default async function ListingDetailPage({
                   <p className="text-sm text-gray-500">{item.label}</p>
                   <p
                     className={`text-xl font-bold ${
-                      item.label === "賃料"
+                      item.label === "賃料" || item.label === "売買価格"
                         ? "text-2xl text-blue-600"
                         : "text-gray-900"
                     }`}
@@ -270,12 +284,14 @@ export default async function ListingDetailPage({
                         {new Date(pl.detected_at).toLocaleDateString("ja-JP")}
                       </td>
                       <td className="py-2 font-medium">
-                        {(pl.current_rent / 10000).toFixed(1)}万円
+                        {pl.listing_type === "sale" && pl.sale_price
+                          ? `${(pl.sale_price / 10000).toFixed(0)}万円`
+                          : `${(pl.current_rent / 10000).toFixed(1)}万円`}
                       </td>
                       <td className="py-2">
-                        {pl.management_fee
-                          ? `${(pl.management_fee / 10000).toFixed(1)}万円`
-                          : "-"}
+                        {pl.listing_type === "sale"
+                          ? (pl.maintenance_fee_sale ? `${pl.maintenance_fee_sale.toLocaleString()}円/月` : "-")
+                          : (pl.management_fee ? `${(pl.management_fee / 10000).toFixed(1)}万円` : "-")}
                       </td>
                       <td className="py-2">{pl.floor || "-"}F</td>
                       <td className="py-2">{pl.source_site || "-"}</td>
@@ -310,7 +326,9 @@ export default async function ListingDetailPage({
                           {item.unitName} / {item.listing.floor}F
                         </p>
                         <p className="text-lg font-bold text-blue-600">
-                          {(item.listing.current_rent / 10000).toFixed(1)}万円
+                          {item.listing.listing_type === "sale" && item.listing.sale_price
+                            ? `${(item.listing.sale_price / 10000).toFixed(0)}万円`
+                            : `${(item.listing.current_rent / 10000).toFixed(1)}万円`}
                         </p>
                         <p className="text-xs text-gray-400">
                           掲載元: {item.listing.source_site}
