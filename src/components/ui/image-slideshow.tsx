@@ -12,45 +12,15 @@ interface ImageSlideshowProps {
   images: ImageData[];
   alt: string;
   className?: string;
-  /** カテゴリタブを表示するか（詳細ページ用） */
-  showCategories?: boolean;
+  /** サムネイルストリップを表示するか（詳細ページ用） */
+  showThumbnails?: boolean;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  exterior: "外観",
-  entrance: "エントランス",
-  common: "共用部分",
-  interior: "室内",
-  kitchen: "キッチン",
-  bathroom: "バス・トイレ",
-  view: "眺望",
-  floorplan: "間取り",
-  other: "その他",
-};
-
-const CATEGORY_ORDER = ["exterior", "entrance", "common", "interior", "kitchen", "bathroom", "view", "floorplan", "other"];
-
-export function ImageSlideshow({ images, alt, className = "", showCategories = false }: ImageSlideshowProps) {
+export function ImageSlideshow({ images, alt, className = "", showThumbnails = false }: ImageSlideshowProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imgError, setImgError] = useState<Set<string>>(new Set());
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  // カテゴリ別にグループ化
-  const categories = CATEGORY_ORDER
-    .map((type) => ({
-      type,
-      label: CATEGORY_LABELS[type] || type,
-      images: images.filter((img) => img.type === type),
-    }))
-    .filter((cat) => cat.images.length > 0);
-
-  // 表示する画像リスト（カテゴリ選択時はそのカテゴリのみ）
-  const displayImages = activeCategory
-    ? images.filter((img) => img.type === activeCategory)
-    : images;
-
-  const validImages = displayImages.filter((img) => !imgError.has(img.url));
-
+  const validImages = images.filter((img) => !imgError.has(img.url));
   const safeIndex = Math.min(currentIndex, Math.max(0, validImages.length - 1));
 
   const goTo = useCallback((idx: number) => {
@@ -72,14 +42,14 @@ export function ImageSlideshow({ images, alt, className = "", showCategories = f
   if (validImages.length === 0) return null;
 
   // コンパクトモード（一覧カードなど）
-  if (!showCategories) {
+  if (!showThumbnails) {
     return (
       <div className={`relative overflow-hidden ${className}`}>
         {validImages.map((img, i) => (
           <img
             key={img.url}
             src={img.url}
-            alt={i === 0 ? alt : `${alt} - ${img.caption || img.type}`}
+            alt={i === 0 ? alt : `${alt} - ${i + 1}`}
             className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
               i === safeIndex ? "opacity-100" : "opacity-0"
             }`}
@@ -114,56 +84,20 @@ export function ImageSlideshow({ images, alt, className = "", showCategories = f
             ))}
           </div>
         )}
-
-        {/* キャプション */}
-        {validImages[safeIndex]?.caption && (
-          <div className="absolute bottom-2 right-2 rounded bg-black/50 px-1.5 py-0.5 text-[10px] text-white">
-            {validImages[safeIndex].caption}
-          </div>
-        )}
       </div>
     );
   }
 
-  // カテゴリ付きモード（建物詳細ページ用）
+  // サムネイル付きモード（建物詳細ページ用）
   return (
     <div className={`overflow-hidden ${className}`}>
-      {/* カテゴリタブ */}
-      {categories.length > 1 && (
-        <div className="flex gap-1 overflow-x-auto px-1 pb-2 scrollbar-hide">
-          <button
-            onClick={() => { setActiveCategory(null); setCurrentIndex(0); }}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors ${
-              activeCategory === null
-                ? "bg-[#007aff] text-white shadow-sm"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            すべて ({images.length})
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat.type}
-              onClick={() => { setActiveCategory(cat.type); setCurrentIndex(0); }}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors ${
-                activeCategory === cat.type
-                  ? "bg-[#007aff] text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              {cat.label} ({cat.images.length})
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* メイン画像エリア */}
       <div className="relative aspect-[16/10] overflow-hidden rounded-lg bg-gray-100">
         {validImages.map((img, i) => (
           <img
             key={img.url}
             src={img.url}
-            alt={i === 0 ? alt : `${alt} - ${img.caption || CATEGORY_LABELS[img.type] || img.type}`}
+            alt={i === 0 ? alt : `${alt} - ${i + 1}`}
             className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
               i === safeIndex ? "opacity-100" : "opacity-0"
             }`}
@@ -184,12 +118,9 @@ export function ImageSlideshow({ images, alt, className = "", showCategories = f
           </>
         )}
 
-        {/* カテゴリラベル + カウンター */}
-        <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between bg-gradient-to-t from-black/60 to-transparent px-3 pb-2 pt-8">
-          <span className="rounded bg-white/20 px-2 py-0.5 text-[12px] font-medium text-white backdrop-blur-sm">
-            {CATEGORY_LABELS[validImages[safeIndex]?.type] || validImages[safeIndex]?.caption || ""}
-          </span>
-          <span className="text-[12px] tabular-nums text-white/80">
+        {/* カウンター */}
+        <div className="absolute bottom-2 right-3">
+          <span className="rounded-full bg-black/40 px-2.5 py-1 text-[12px] tabular-nums text-white backdrop-blur-sm">
             {safeIndex + 1} / {validImages.length}
           </span>
         </div>
@@ -202,7 +133,7 @@ export function ImageSlideshow({ images, alt, className = "", showCategories = f
             <button
               key={img.url}
               onClick={() => goTo(i)}
-              className={`relative shrink-0 overflow-hidden rounded-md transition-all ${
+              className={`shrink-0 overflow-hidden rounded-md transition-all ${
                 i === safeIndex
                   ? "ring-2 ring-[#007aff] ring-offset-1"
                   : "opacity-60 hover:opacity-100"
@@ -210,14 +141,11 @@ export function ImageSlideshow({ images, alt, className = "", showCategories = f
             >
               <img
                 src={img.url}
-                alt={img.caption || CATEGORY_LABELS[img.type] || ""}
+                alt={`${alt} - ${i + 1}`}
                 className="h-14 w-20 object-cover"
                 loading="lazy"
                 onError={() => setImgError((prev) => new Set(prev).add(img.url))}
               />
-              <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1 py-px text-center text-[9px] text-white">
-                {CATEGORY_LABELS[img.type] || img.type}
-              </div>
             </button>
           ))}
         </div>

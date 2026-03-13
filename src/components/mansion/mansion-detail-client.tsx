@@ -189,7 +189,7 @@ export function MansionDetailClient({
           <ImageSlideshow
             images={displayImages}
             alt={mansion.name}
-            showCategories
+            showThumbnails
           />
         );
       })()}
