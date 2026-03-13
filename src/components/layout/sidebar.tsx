@@ -4,14 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/dashboard", label: "ダッシュボード", icon: HomeIcon },
-  { href: "/mansions", label: "物件リスト", icon: BuildingIcon },
-  { href: "/watchlist", label: "ウォッチリスト", icon: EyeIcon },
+  { href: "/dashboard", label: "ホーム", icon: HomeIcon },
+  { href: "/mansions", label: "物件", icon: BuildingIcon },
+  { href: "/watchlist", label: "監視", icon: EyeIcon },
   { href: "/favorites", label: "お気に入り", icon: HeartIcon },
-  { href: "/compare", label: "物件比較", icon: CompareIcon },
+  { href: "/compare", label: "比較", icon: CompareIcon },
   { href: "/notifications", label: "通知", icon: BellIcon },
+];
+
+const bottomItems = [
   { href: "/settings/notifications", label: "設定", icon: SettingsIcon },
-  { href: "/admin", label: "データ管理", icon: DatabaseIcon },
+  { href: "/admin", label: "管理", icon: DatabaseIcon },
 ];
 
 interface SidebarProps {
@@ -22,39 +25,59 @@ interface SidebarProps {
 export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
 
+  function NavLink({ item, index }: { item: typeof navItems[0]; index: number }) {
+    const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+    return (
+      <Link
+        href={item.href}
+        onClick={onClose}
+        style={{ animationDelay: `${index * 40}ms` }}
+        className={`animate-slide-in group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200 ${
+          isActive
+            ? "bg-white/[0.1] text-white"
+            : "text-white/40 hover:bg-white/[0.05] hover:text-white/70"
+        }`}
+      >
+        {isActive && (
+          <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
+        )}
+        <item.icon className={`h-[18px] w-[18px] transition-all duration-200 ${
+          isActive ? "text-white" : "text-white/30 group-hover:text-white/50"
+        }`} />
+        {item.label}
+      </Link>
+    );
+  }
+
   return (
     <>
-      {/* モバイルオーバーレイ */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
           onClick={onClose}
         />
       )}
 
-      {/* サイドバー */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[260px] flex-shrink-0 bg-gradient-to-b from-[#0f172a] to-[#0a1120] transition-transform duration-200 lg:static lg:z-auto lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-[240px] flex-shrink-0 bg-[#0c0c12] transition-transform duration-200 lg:static lg:z-auto lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* アニメーショングラデーションライン */}
-        <div className="h-[2px] bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 animate-gradient" />
-
-        {/* ロゴエリア */}
-        <div className="flex h-16 items-center justify-between px-6">
-          <Link href="/dashboard" className="flex flex-col">
-            <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-400 bg-clip-text text-xl font-black tracking-[0.2em] text-transparent animate-gradient" style={{ backgroundSize: '200% 200%' }}>
-              MACHIBUSE
-            </span>
-            <span className="mt-0.5 text-[10px] font-medium tracking-[0.15em] text-slate-500 uppercase">
-              Property Intelligence
-            </span>
+        {/* Logo */}
+        <div className="flex h-16 items-center justify-between px-5">
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
+              <span className="text-[12px] font-black text-[#0c0c12]">M</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[14px] font-bold tracking-[0.08em] text-white/90">
+                MACHIBUSE
+              </span>
+            </div>
           </Link>
-          {/* モバイル閉じるボタン */}
           <button
             onClick={onClose}
-            className="rounded-lg p-1 text-slate-500 transition-colors duration-200 hover:bg-white/10 hover:text-slate-300 lg:hidden"
+            className="rounded-lg p-1 text-white/30 transition-colors hover:bg-white/[0.05] hover:text-white/60 lg:hidden"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -62,46 +85,23 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           </button>
         </div>
 
-        {/* ディバイダー */}
-        <div className="mx-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        {/* Divider */}
+        <div className="mx-4 h-px bg-white/[0.06]" />
 
-        {/* ナビゲーション */}
+        {/* Nav */}
         <nav className="flex flex-col gap-0.5 p-3 pt-4">
-          {navItems.map((item, index) => {
-            const isActive =
-              pathname === item.href || pathname.startsWith(item.href + "/");
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                style={{ animationDelay: `${index * 50}ms` }}
-                className={`animate-slide-in group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-300 ${
-                  isActive
-                    ? "bg-white/[0.08] text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
-                    : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
-                }`}
-              >
-                {isActive && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-gradient-to-b from-blue-400 to-cyan-400 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
-                )}
-                <item.icon className={`h-[18px] w-[18px] transition-colors duration-300 ${isActive ? "text-cyan-400 drop-shadow-[0_0_4px_rgba(34,211,238,0.4)]" : "text-slate-500 group-hover:text-slate-300"}`} />
-                {item.label}
-              </Link>
-            );
-          })}
+          {navItems.map((item, index) => (
+            <NavLink key={item.href} item={item} index={index} />
+          ))}
         </nav>
 
-        {/* ボトムセクション */}
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <div className="mx-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-3" />
-          <div className="mx-1 pt-3">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-semibold tracking-wider text-slate-600">v2.0</span>
-              <span className="rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 px-2 py-0.5 text-[9px] font-bold tracking-wider text-blue-400">
-                PRO
-              </span>
-            </div>
+        {/* Bottom */}
+        <div className="absolute bottom-0 left-0 right-0 p-3">
+          <div className="mx-1 mb-2 h-px bg-white/[0.06]" />
+          <div className="flex flex-col gap-0.5">
+            {bottomItems.map((item, index) => (
+              <NavLink key={item.href} item={item} index={index + navItems.length} />
+            ))}
           </div>
         </div>
       </aside>
